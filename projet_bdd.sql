@@ -2,10 +2,11 @@
 DROP TABLE Patient;
 DROP TABLE Consultation;
 DROP TABLE Patient_consultation;
+DROP SEQUENCE t1_seq;
 
 
 CREATE TABLE Patient(
-        Id_patient          Varchar (50) NOT NULL ,
+        Id_patient          NUMBER,
 		Prenom_patient		Varchar (50) NOT NULL ,
 		Nom_patient			Varchar (50) NOT NULL ,
         Email               Varchar (50) NOT NULL ,
@@ -16,9 +17,16 @@ CREATE TABLE Patient(
         Prospection         Varchar (50) NOT NULL
 	,CONSTRAINT Patient_PK PRIMARY KEY (Id_patient)
 );
-INSERT INTO Patient VALUES (1, 'Samuel', 'Creteur', 'Samuel@gmail.com', 123, 'Homme', to_date('1999-05-27', 'yyyy-mm-dd'), 'Etudiant', 'Bouche a oreille');
-INSERT INTO Patient VALUES (2, 'Stephane', 'Duchemin', 'Stephane@gmail.com', 123, 'Homme', to_date('1999-01-05', 'yyyy-mm-dd'), 'Vendeur chez Darty', 'Internet');
-INSERT INTO Patient VALUES (3, 'Lucas', 'Pech', 'Lucasp@gmail.com', 123, 'Homme', to_date('2000-11-08', 'yyyy-mm-dd'), 'Boulanger', 'Message');
+
+create sequence
+   t1_seq
+  increment by 1
+  start with 1;
+
+
+INSERT INTO Patient VALUES (t1_seq.nextval, 'Samuel', 'Creteur', 'Samuel@gmail.com', 123, 'Homme', to_date('1999-05-27', 'yyyy-mm-dd'), 'Etudiant', 'Bouche a oreille');
+INSERT INTO Patient VALUES (t1_seq.nextval, 'Stephane', 'Duchemin', 'Stephane@gmail.com', 123, 'Homme', to_date('1999-01-05', 'yyyy-mm-dd'), 'Vendeur chez Darty', 'Internet');
+INSERT INTO Patient VALUES (t1_seq.nextval, 'Lucas', 'Pech', 'Lucasp@gmail.com', 123, 'Homme', to_date('2000-11-08', 'yyyy-mm-dd'), 'Boulanger', 'Message');
 
 
 CREATE TABLE Consultation(
