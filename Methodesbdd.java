@@ -2,7 +2,8 @@ import java.io.File;
 import java.sql.*;
 import java.util.Scanner;
 
-public class Methodesbdd {
+public class Methodesbdd
+{
 
     public void ajout_patient(Connection conn) throws SQLException, ClassNotFoundException {
 
@@ -17,8 +18,7 @@ public class Methodesbdd {
         String Prospection;
 
         Scanner in = new Scanner(System.in);
-        try
-        {
+        try {
             System.out.println("Entrez le prénom du patient : ");
             Prenom_patient = in.nextLine();
             System.out.println("Entrez le nom du patient : ");
@@ -35,20 +35,95 @@ public class Methodesbdd {
             Profession_actuelle = in.nextLine();
             System.out.println("Entrez comment le patient vous a connu : ");
             Prospection = in.nextLine();
-            Statement stmt= conn.createStatement();
-            String query1 = "insert into Patient (Id_patient, Prenom_patient, Nom_patient, Email, Mdp_patient, Sexe, Date_naissance, Profession_actuelle, Prospection)" + " VALUES (t1_seq.nextval, '" + Prenom_patient + "',  '" +  Nom_patient + "', '" + Email_patient + "', " + Mdp_patient + ", '" + Sexe_patient + "', to_date('" + Date_naissance +"', 'yyyy-mm-dd'), '" + Profession_actuelle + "', '" + Prospection + "')";
+            Statement stmt = conn.createStatement();
+            String query1 = "insert into Patient (Id_patient, Prenom_patient, Nom_patient, Email, Mdp_patient, Sexe, Date_naissance, Profession_actuelle, Prospection)" + " VALUES (t1_seq.nextval, '" + Prenom_patient + "',  '" + Nom_patient + "', '" + Email_patient + "', '" + Mdp_patient + "', '" + Sexe_patient + "', to_date('" + Date_naissance + "', 'yyyy-mm-dd'), '" + Profession_actuelle + "', '" + Prospection + "')";
             stmt.executeUpdate(query1);
-        }
-        catch (SQLException ex) {
+        } catch (SQLException ex) {
 // Si une exception SQL survient, il affiche les messages d’erreurs du SGBD
-            System.out.println ("\n*** ERREUR SQL ***\n");
+            System.out.println("\n*** ERREUR SQL ***\n");
             while (ex != null) {
-                System.out.println ("SQL Etat: " + ex.getSQLState ());
-                System.out.println ("Message: " + ex.getMessage ());
-                System.out.println ("Code de l'erreur: " +
-                        ex.getErrorCode ());
-                ex = ex.getNextException ();
+                System.out.println("SQL Etat: " + ex.getSQLState());
+                System.out.println("Message: " + ex.getMessage());
+                System.out.println("Code de l'erreur: " + ex.getErrorCode());
+                ex = ex.getNextException();
             }
         }
+    }
+
+    public int login(Connection conn) throws SQLException, ClassNotFoundException
+    {
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        Scanner in = new Scanner(System.in);
+        String username;
+        boolean identification = false;
+        String mdpadmin = null;
+        String mdppatient = null;
+        int cpt = 0;
+        String motdepassetape;
+        int id_user = 0;
+
+        while(!identification)
+        {
+            try {
+                    System.out.println("Enter your username : ");
+                    username = in.nextLine();
+                    if (username.equals("admin"))
+                    {
+                        System.out.println("Enter your password : ");
+                        mdpadmin = in.nextLine();
+                        if (mdpadmin.equals("admin"))
+                        {
+                            System.out.println("Bienvenue psychologue");
+                            identification = true;
+                            return -1;
+                        }
+
+                    }
+                    else
+                    {
+                        Statement stmt = conn.createStatement();
+                        ResultSet rset = stmt.executeQuery("select Id_patient, Mdp_patient from Patient where Email = '" + username + "'");
+                        while (rset.next())
+                        {
+                            id_user = rset.getInt("Id_patient");
+                            mdppatient = rset.getString("Mdp_patient");
+                            cpt++;
+                        }
+                        if (cpt == 0)
+                        {
+                            System.out.println("Cet username n'est pas reconnu");
+                        }
+                        else
+                        {
+                            System.out.println("id user : " + id_user);
+                            System.out.println("Entrez votre mot de passe : ");
+                            motdepassetape = in.nextLine();
+                            if (motdepassetape.equals(mdppatient))
+                            {
+                                return id_user;
+                            }
+                            else
+                            {
+                                System.out.println("Mauvais mot de passe, recommencez l'identification");
+                            }
+
+                        }
+
+                    }
+                 }
+            catch (SQLException ex)
+            {
+// Si une exception SQL survient, il affiche les messages d’erreurs du SGBD
+                System.out.println("\n*** ERREUR SQL ***\n");
+                while (ex != null)
+                {
+                    System.out.println("SQL Etat: " + ex.getSQLState());
+                    System.out.println("Message: " + ex.getMessage());
+                    System.out.println("Code de l'erreur: " + ex.getErrorCode());
+                    ex = ex.getNextException();
+                }
+            }
+        }
+        return 0;
     }
 }

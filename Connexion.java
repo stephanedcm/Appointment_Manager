@@ -10,11 +10,13 @@ public class Connexion {
     public static void main(String[] args) throws ClassNotFoundException, SQLException{
         // create jdbc connection obj and load class
         Class.forName("oracle.jdbc.driver.OracleDriver");
+        int user;
         Connection conn= DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe", "sam", "sammp");
         // create statement obj
         Statement stmt= conn.createStatement();
         Methodesbdd test = new Methodesbdd();
-        test.ajout_patient(conn);
+        user = test.login(conn);
+        //test.ajout_patient(conn);
         // execute query
         ResultSet rset = stmt.executeQuery("select * from Patient");
         // print database table records
