@@ -16,6 +16,8 @@ public class Connexion {
         Statement stmt= conn.createStatement();
         Methodesbdd test = new Methodesbdd();
         user = test.login(conn);
+        if (user != -1)
+            test.patient_consultation(conn, user);
         //test.ajout_patient(conn);
         // execute query
         ResultSet rset = stmt.executeQuery("select * from Patient");

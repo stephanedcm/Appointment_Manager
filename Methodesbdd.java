@@ -5,6 +5,36 @@ import java.util.Scanner;
 public class Methodesbdd
 {
 
+    public void patient_consultation(Connection conn, int user) throws SQLException, ClassNotFoundException
+    {
+        int id = user;
+        Class.forName("oracle.jdbc.driver.OracleDriver");
+        try
+        {
+            Statement stmt= conn.createStatement();
+            ResultSet rset = stmt.executeQuery("select * from consultp where Id_patient ="+id);
+            System.out.println("Prénom" +  "\t" +  "Nom" + "\t" + "Date consultation" + "\t" + "Type consultation");
+            while(rset.next())
+            {
+                System.out.print(rset.getString("Prenom_patient") + "\t");
+                System.out.print(rset.getString("Nom_patient") + "\t" + "\t");
+                System.out.print(rset.getString("Date_consultation")+ "\t" +  "\t");
+                System.out.println(rset.getString("Type_consultation") + "\t");
+            }
+        }
+        catch (SQLException ex)
+        {
+            System.out.println("\n*** ERREUR SQL ***\n");
+            while (ex != null)
+            {
+                System.out.println("SQL Etat: " + ex.getSQLState());
+                System.out.println("Message: " + ex.getMessage());
+                System.out.println("Code de l'erreur: " + ex.getErrorCode());
+                ex = ex.getNextException();
+            }
+        }
+    }
+
     public void ajout_patient(Connection conn) throws SQLException, ClassNotFoundException {
 
         Class.forName("oracle.jdbc.driver.OracleDriver");

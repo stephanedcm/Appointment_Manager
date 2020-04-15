@@ -3,6 +3,7 @@ DROP TABLE Patient;
 DROP TABLE Consultation;
 DROP TABLE Patient_consultation;
 DROP SEQUENCE t1_seq;
+DROP VIEW consultp;
 
 
 CREATE TABLE Patient(
@@ -53,6 +54,11 @@ CREATE TABLE Patient_consultation(
 INSERT INTO Patient_consultation VALUES (1, 1, 2, 'Argent', 'PAPA, MAMAN, ZEBI');
 INSERT INTO Patient_consultation VALUES (2, 2, 4, 'Cheque', 'ZEBI');
 INSERT INTO Patient_consultation VALUES (3, 2, 5, 'Cheque', 'PEUR, ANGOISSE');
+
+CREATE VIEW consultp AS
+SELECT p.Id_patient, p.Prenom_patient, p.Nom_patient, c.Date_consultation, c.Type_consultation
+FROM Patient p, Patient_consultation a, Consultation c
+WHERE p.Id_patient = a.Id_patient and c.Id_consultation = a.Id_consultation;
 
 COMMIT;
 
