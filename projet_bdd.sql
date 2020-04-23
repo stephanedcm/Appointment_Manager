@@ -72,13 +72,10 @@ INSERT INTO Patient VALUES (patient_seq.nextval, 'Lucas', 'Pech', 'Lucasp@gmail.
 CREATE TABLE Consultation(
         Id_consultation   Varchar (50) NOT NULL ,
         Date_consultation Date NOT NULL ,
-        Type_consultation Varchar (50) NOT NULL
+        Type_consultation Varchar (50) NOT NULL,
+	Prix_consultation Varchar (50) NOT NULL
 	,CONSTRAINT Consultation_PK PRIMARY KEY (Id_consultation)
 );
-
-INSERT INTO Consultation VALUES (Consultation_seq.nextval,to_timestamp('2020-04-13 14:00','yyyy-mm-dd hh24:MI'),'individuel');
-INSERT INTO Consultation VALUES (Consultation_seq.nextval,to_timestamp('2020-04-14 15:00','yyyy-mm-dd hh24:MI'),'couple');
-INSERT INTO Consultation VALUES (Consultation_seq.nextval, to_timestamp('2020-04-15 16:00','yyyy-mm-dd hh24:MI'),'famille');
 
 
 CREATE TABLE Patient_consultation(
@@ -91,9 +88,6 @@ CREATE TABLE Patient_consultation(
 	,CONSTRAINT Patient_consultation_PK PRIMARY KEY (Id_patient,Id_consultation)
 );
 
-INSERT INTO Patient_consultation VALUES (1, 1, NULL, NULL, NULL, NULL);
-INSERT INTO Patient_consultation VALUES (2, 1, NULL, NULL, NULL, NULL);
-INSERT INTO Patient_consultation VALUES (3, 2, NULL, NULL, NULL, NULL);
 
 CREATE TABLE Profession(
         Id_profession		Varchar (50) NOT NULL ,

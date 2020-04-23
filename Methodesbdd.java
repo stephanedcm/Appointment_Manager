@@ -1,7 +1,10 @@
 import javax.xml.transform.Result;
 import java.io.File;
 import java.sql.*;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.Scanner;
+import java.util.Date;
 
 public class Methodesbdd
 {
@@ -12,48 +15,49 @@ public class Methodesbdd
         String m="";
         String h="";
         String type="";
+        int idConsultation=0;
         System.out.println("Vous avez sélectionné l'ajout, la modification ou l'annulation d'une consultation.");
         Scanner scanner = new Scanner(System.in);  // Create a Scanner object
-
         boolean check=false;
         while(!check){
             System.out.print("Tapez 1 pour ajouter une consultation, 2 pour la modifier, 3 pour l'annuler et 4 pour retourner au menu précédent: ");
             int whichOne_1 = scanner.nextInt();  // Read user input
             switch(whichOne_1){
                 case 1:
-                    int cpt=0;
-                    Scanner scanner1 = new Scanner(System.in);
+                    int cptNextVal=0;
+                    Statement stmt= conn.createStatement();
+                    ResultSet rset = stmt.executeQuery("select Consultation_seq.nextval from Consultation where Id_Consultation=1");
+                    while(rset.next()) {
+                        cptNextVal++;
+                        idConsultation = (rset.getInt(1)+1);
+                    }
+                    if(cptNextVal==0){
+                        idConsultation=1;
+                    }
                     System.out.println("Vous avez choisi d'ajouter une consultation");
-                    System.out.print("Veuillez rentrer le Prénom du patient: ");
-                    String prenom = scanner1.nextLine();
-                    System.out.print("Veuillez rentrer le Nom du patient: ");
-                    String nom = scanner1.nextLine();
-                    System.out.print("Veuillez rentrer la date de la consultation que vous voulez ajouter dans le format suivant jj/mm/yyyy/Ho/Mi: ");
-                    String date = scanner1.nextLine();
-                    Scanner scan = new Scanner(date);
-                    scan.useDelimiter("/");
-                    jour=scan.next();
-                    mois=scan.next();
-                    annee=scan.next();
-                    h=scan.next();
-                    m=scan.next();
-                    // closing the scanner stream
-                    scan.close();
-                    System.out.print("Veuillez maintenant sélectionner le type de consultation, tapez 1 s'il s'agit d'une consultation individuelle, 2 en couple, 3 en famille: ");
+                    System.out.print("Veuillez sélectionner le type de consultation, tapez 1 s'il s'agit d'une consultation individuelle, 2 en couple, 3 en famille: ");
                     int whichOne_2 = scanner.nextInt();
+                    int nbPatient=0;
+                    int prix=0;
                     boolean check_1=false;
                     while(!check_1){
                         switch(whichOne_2){
                             case 1:
                                 type="individuelle";
+                                prix=50;
+                                nbPatient=1;
                                 check_1=true;
                                 break;
                             case 2:
                                 type="couple";
+                                prix=80;
+                                nbPatient=2;
                                 check_1=true;
                                 break;
                             case 3:
                                 type="famille";
+                                prix=100;
+                                nbPatient=3;
                                 check_1=true;
                                 break;
                             default:
@@ -62,77 +66,137 @@ public class Methodesbdd
                                 whichOne_2 = scanner.nextInt();
                         }
                     }
+                    int cpt=0;
+                    Scanner scanner1 = new Scanner(System.in);
+                    for(int i=1; i<nbPatient+1;i++){
+                        int cpt_patient=0;
+                        String nom="";
+                        System.out.println("Id" +  "\t" +  "Nom");
+                        while(cpt_patient==0){
+                            System.out.print("Veuillez rentrer le Nom du patient "+i+": ");
+                            nom = scanner1.nextLine();
+                            stmt= conn.createStatement();
+                            rset = stmt.executeQuery("select Id_Patient,Nom_patient from Patient where Nom_patient ='"+nom+"'");
+                            while(rset.next())
+                            {
+                                cpt_patient++;
+                                System.out.print(rset.getString("Id_Patient") + "\t");
+                                System.out.print(rset.getString("Nom_Patient") + "\t" + "\t");
+                            }
+                        }
+                        System.out.print("Veuillez rentrer l'id du patient voulu: ");
+                        int idPatient=scanner1.nextInt();
+                        stmt= conn.createStatement();
+                        System.out.println("Consultation: "+idConsultation+"Patient: "+idPatient);
+                        stmt.executeUpdate("INSERT INTO Patient_consultation VALUES ("+idPatient+", "+idConsultation+", NULL, NULL, NULL, NULL)");
+                        System.out.println("Patient "+nom+" ajouté à la consultation "+idConsultation);
+                    }
+                    System.out.print("Veuillez rentrer la date de la consultation que vous voulez ajouter dans le format suivant jj/mm/yyyy/Ho/Mi: ");
+                    Scanner scanner4 = new Scanner(System.in);
+                    String date = scanner4.nextLine();
+                    Scanner scan2 = new Scanner(date);
+                    scan2.useDelimiter("/");
+                    jour=scan2.next();
+                    mois=scan2.next();
+                    annee=scan2.next();
+                    h=scan2.next();
+                    m=scan2.next();
+                    // closing the scanner stream
+                    scan2.close();
                     System.out.println(annee+mois+jour+h+m+type);
                     // create statement obj
-                    Statement stmt= conn.createStatement();
+                    stmt= conn.createStatement();
                     // execute query
-                    stmt.executeUpdate("INSERT INTO Consultation VALUES (t1_seq.nextval,to_timestamp('"+annee+"-"+mois+"-"+jour+" "+h+":"+m+"','yyyy-mm-dd hh24:MI'),'"+type+"')");
+                    stmt.executeUpdate("INSERT INTO Consultation VALUES ("+idConsultation+",to_timestamp('"+annee+"-"+mois+"-"+jour+" "+h+":"+m+"','yyyy-mm-dd hh24:MI'),'"+type+"',"+prix+")");
+                    rset = stmt.executeQuery("select * from Consultation");
+                    System.out.println("Id_Consultation" +  "\t" +  "Date" + "\t" + "Type");
+                    while(rset.next())
+                    {
+                        System.out.print(rset.getString("Id_consultation") + "\t");
+                        System.out.print(rset.getString("Date_consultation") + "\t" + "\t");
+                        System.out.print(rset.getString("Type_consultation") + "\t" + "\t");
+                        System.out.print(rset.getString("Prix_consultation") + "\t" + "\t");
+                    }
+                    System.out.println();
+                    rset = stmt.executeQuery("select * from Patient_consultation");
+                    System.out.println("Id_patient" +  "\t" +  "Id_Consultation" + "\t" + "Indicateur_anxiete" + "\t" + "Type_reglement" + "\t" + "Type_Patient" + "\t" + "Retard");
+                    while(rset.next())
+                    {
+                        System.out.print(rset.getString("Id_Patient") + "\t");
+                        System.out.print(rset.getString("Id_Consultation") + "\t" + "\t");
+                        System.out.print(rset.getString("Indicateur_anxiete") + "\t" + "\t");
+                        System.out.print(rset.getString("Type_reglement") + "\t");
+                        System.out.print(rset.getString("Type_Patient") + "\t" + "\t");
+                        System.out.print(rset.getString("Retard") + "\t" + "\t");
+                        System.out.println("\n");
+                    }
+
                     System.out.println("Consultation ajoutée!");
                     break;
                     
                 case 2:
                     stmt= conn.createStatement();
                     System.out.println("Vous avez choisi de modifier une consultation.");
-                    System.out.print("Veuillez rentrer l'identifiant de la consultation que vous voulez modifier: ");
-                    Scanner scanner2 = new Scanner(System.in);
-                    int id_Consultation = scanner2.nextInt();
-                    System.out.print("Que voulez-vous modifier? Tapez 1 s'il s'agit de l'heure de la consultation, 2 s'il s'agit du type de consultation: ");
-                    int whichOne_3 = scanner2.nextInt();
-                    switch(whichOne_3){
-                        case 1:
-                            System.out.print("Veuillez rentrer la nouvelle date de la consultation dans le format suivant jj/mm/yyyy/Ho/Mi: ");
-                            Scanner scanner3 = new Scanner(System.in);
-                            date = scanner3.nextLine();
-                            Scanner scan1 = new Scanner(date);
-                            scan1.useDelimiter("/");
-                            jour=scan1.next();
-                            mois=scan1.next();
-                            annee=scan1.next();
-                            h=scan1.next();
-                            m=scan1.next();
-                            // closing the scanner stream
-                            scan1.close();
-                            stmt.executeUpdate("UPDATE Consultation SET Date_Consultation = to_timestamp('"+annee+"-"+mois+"-"+jour+" "+h+":"+m+"','yyyy-mm-dd hh24:MI') WHERE Id_Consultation="+id_Consultation);
-                            System.out.println("Informations relatives à la date de la consultation mises à jour!");
-                            break;
-                        case 2:
-                            System.out.print("Veuillez sélectionner le nouveau type de la consultation, tapez 1 s'il s'agit d'une consultation individuelle, 2 en couple, 3 en famille: ");
-                            int whichOne_4 = scanner2.nextInt();
-                            boolean check_2=false;
-                            while(!check_2){
-                                switch(whichOne_4){
-                                    case 1:
-                                        type="individuelle";
-                                        stmt.executeUpdate("UPDATE Consultation SET Type_Consultation = '"+type+"' WHERE Id_Consultation="+id_Consultation);
-                                        check_2=true;
-                                        break;
-                                    case 2:
-                                        type="couple";
-                                        stmt.executeUpdate("UPDATE Consultation SET Type_Consultation = '"+type+"' WHERE Id_Consultation="+id_Consultation);
-                                        check_2=true;
-                                        break;
-                                    case 3:
-                                        type="famille";
-                                        stmt.executeUpdate("UPDATE Consultation SET Type_Consultation = '"+type+"' WHERE Id_Consultation="+id_Consultation);
-                                        check_2=true;
-                                        break;
-                                    default:
-                                        System.out.print("Mauvais choix, veuillez taper 1 s'il s'agit d'une consultation individuelle, 2 en couple, 3 en famille: ");
-                                        scanner.reset();
-                                        whichOne_3 = scanner.nextInt();
-                                }
-                            }
-                            System.out.println("Informations relatives à la date de la consultation mises à jour!");
-
-                    }break;
+                    int cpt_patient=0;
+                    while(cpt_patient==0){
+                        System.out.print("Veuillez rentrer le Nom du patient: ");
+                        Scanner scanner2 = new Scanner(System.in);
+                        String nom = scanner2.nextLine();
+                        stmt= conn.createStatement();
+                        rset = stmt.executeQuery("select Patient.Id_patient, Prenom_patient, Nom_patient, Patient_consultation.Id_consultation, Date_consultation from Patient join Patient_consultation on Patient.Id_patient = Patient_consultation.Id_patient join Consultation on Patient_consultation.Id_consultation = Consultation.Id_consultation where Nom_patient='"+nom+"'");
+                        while(rset.next())
+                        {
+                            cpt_patient++;
+                            System.out.print(rset.getString("Id_consultation") + "\t");
+                            System.out.print(rset.getString("Date_consultation") + "\t");
+                            System.out.print(rset.getString("Prenom_patient") + "\t");
+                            System.out.print(rset.getString("Nom_patient") + "\t" + "\t");
+                            System.out.println();
+                        }
+                    }
+                    System.out.print("Entrez l'ID de la consultation dont vous souhaitez modifier l'heure: ");
+                    Scanner scanner5 = new Scanner(System.in);
+                    int id_Consultation = scanner5.nextInt();
+                    System.out.print("Veuillez rentrer la nouvelle date de la consultation dans le format suivant jj/mm/yyyy/Ho/Mi: ");
+                    Scanner scanner3 = new Scanner(System.in);
+                    date = scanner3.nextLine();
+                    Scanner scan1 = new Scanner(date);
+                    scan1.useDelimiter("/");
+                    jour=scan1.next();
+                    mois=scan1.next();
+                    annee=scan1.next();
+                    h=scan1.next();
+                    m=scan1.next();
+                    // closing the scanner stream
+                    scan1.close();
+                    stmt.executeUpdate("UPDATE Consultation SET Date_Consultation = to_timestamp('"+annee+"-"+mois+"-"+jour+" "+h+":"+m+"','yyyy-mm-dd hh24:MI') WHERE Id_Consultation="+id_Consultation);
+                    System.out.println("Informations relatives à la date de la consultation mises à jour!");
+                    break;
 
                 case 3:
                     System.out.println("Vous avez choisi d'annuler une consultation.");
+                    cpt_patient=0;
+                    while(cpt_patient==0){
+                        System.out.print("Veuillez rentrer le Nom du patient: ");
+                        Scanner scanner2 = new Scanner(System.in);
+                        String nom = scanner2.nextLine();
+                        stmt= conn.createStatement();
+                        rset = stmt.executeQuery("select Patient.Id_patient, Prenom_patient, Nom_patient, Patient_consultation.Id_consultation, Date_consultation from Patient join Patient_consultation on Patient.Id_patient = Patient_consultation.Id_patient join Consultation on Patient_consultation.Id_consultation = Consultation.Id_consultation where Nom_patient='"+nom+"'");
+                        while(rset.next())
+                        {
+                            cpt_patient++;
+                            System.out.print(rset.getString("Id_consultation") + "\t");
+                            System.out.print(rset.getString("Date_consultation") + "\t");
+                            System.out.print(rset.getString("Prenom_patient") + "\t");
+                            System.out.print(rset.getString("Nom_patient") + "\t" + "\t");
+                            System.out.println();
+                        }
+                    }
                     System.out.print("Veuillez rentrer l'identifiant de la consultation que vous voulez annuler: ");
                     scanner1 = new Scanner(System.in);
                     id_Consultation = scanner1.nextInt();
                     stmt= conn.createStatement();
-                    ResultSet rset= stmt.executeQuery("SELECT * from Consultation WHERE Id_Consultation="+id_Consultation);
+                    rset= stmt.executeQuery("SELECT * from Consultation WHERE Id_Consultation="+id_Consultation);
                     cpt=0;
                     while(rset.next()) {
                         cpt++;
@@ -143,6 +207,7 @@ public class Methodesbdd
                     }
                     else{
                         stmt.executeUpdate("DELETE FROM Consultation WHERE Id_Consultation="+id_Consultation);
+                        stmt.executeUpdate("DELETE FROM Patient_consultation WHERE Id_Consultation="+id_Consultation);
                         System.out.println("Consultation "+id_Consultation+" annulée.");
                         break;
                     }
@@ -156,6 +221,58 @@ public class Methodesbdd
             }
 
         }
+
+    }
+
+    public static void fin_rdv(Connection conn) throws SQLException{
+        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        Date date = new Date();
+        Statement stmt= conn.createStatement();
+        ResultSet rset = stmt.executeQuery("select Patient.Id_patient, Prenom_patient, Nom_patient, Patient_consultation.Id_consultation, Date_consultation from Patient join Patient_consultation on Patient.Id_patient = Patient_consultation.Id_patient join Consultation on Patient_consultation.Id_consultation = Consultation.Id_consultation where Date_consultation<=to_timestamp('"+dateFormat.format(date)+"','yyyy-mm-dd hh24:MI') and Type_reglement is null");
+        System.out.println("Vous avez fini un RDV.");
+        System.out.println("Liste de consultations passées et non traitées:");
+        while(rset.next())
+        {
+            System.out.print(rset.getString("Id_consultation") + "\t");
+            System.out.print(rset.getString("Date_consultation") + "\t");
+            System.out.print(rset.getString("Prenom_patient") + "\t");
+            System.out.print(rset.getString("Nom_patient") + "\t" + "\t");
+            System.out.println();
+        }
+        System.out.print("Entrez l'ID de la consultation que vous souhaitez traiter: ");
+        Scanner scan = new Scanner(System.in);
+        int id_Patient = 0;
+        int id_Consultation = scan.nextInt();
+        int nbPatient=0;
+        String Nom_Patient="";
+        String type_consultation="";
+        rset = stmt.executeQuery("select Type_consultation from Consultation where Id_consultation="+id_Consultation);
+        while(rset.next())
+        {
+            type_consultation=rset.getString(1);
+
+        }
+        switch(type_consultation){
+            case "individuelle":
+                nbPatient=1;
+                rset = stmt.executeQuery("select Patient.Id_patient, Nom_patient, Patient_consultation.Id_consultation from Patient join Patient_consultation on Patient.Id_patient = Patient_consultation.Id_patient join Consultation on Patient_consultation.Id_consultation ="+id_Consultation);
+                while(rset.next())
+                {
+                    id_Patient=rset.getInt(1);
+                    Nom_Patient=rset.getString(2);
+                }
+                System.out.println("Entrez");
+                break;
+            case "couple":
+                nbPatient=2;;
+                break;
+            case "famille":
+                nbPatient=3;
+                break;
+        }
+
+        String indicateur_anxiete,type_reglement,retard;
+
 
     }
 
