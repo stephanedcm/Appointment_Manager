@@ -1,8 +1,11 @@
+import oracle.jdbc.proxy.annotation.Pre;
+
 import javax.xml.transform.Result;
 import java.io.File;
 import java.sql.*;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.IllegalFormatCodePointException;
 import java.util.Scanner;
 import java.util.Date;
 
@@ -109,13 +112,14 @@ public class Methodesbdd
                     // execute query
                     stmt.executeUpdate("INSERT INTO Consultation VALUES ("+idConsultation+",to_timestamp('"+annee+"-"+mois+"-"+jour+" "+h+":"+m+"','yyyy-mm-dd hh24:MI'),'"+type+"',"+prix+")");
                     rset = stmt.executeQuery("select * from Consultation");
-                    System.out.println("Id_Consultation" +  "\t" +  "Date" + "\t" + "Type");
+                    System.out.println("Id_Consultation" +  "\t" +  "Date" + "\t" + "Type" + "\t" + "Prix_consultation");
                     while(rset.next())
                     {
                         System.out.print(rset.getString("Id_consultation") + "\t");
                         System.out.print(rset.getString("Date_consultation") + "\t" + "\t");
                         System.out.print(rset.getString("Type_consultation") + "\t" + "\t");
                         System.out.print(rset.getString("Prix_consultation") + "\t" + "\t");
+                        System.out.println("\n");
                     }
                     System.out.println();
                     rset = stmt.executeQuery("select * from Patient_consultation");
@@ -228,24 +232,56 @@ public class Methodesbdd
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Date date = new Date();
         Statement stmt= conn.createStatement();
-        ResultSet rset = stmt.executeQuery("select Patient.Id_patient, Prenom_patient, Nom_patient, Patient_consultation.Id_consultation, Date_consultation from Patient join Patient_consultation on Patient.Id_patient = Patient_consultation.Id_patient join Consultation on Patient_consultation.Id_consultation = Consultation.Id_consultation where Date_consultation<=to_timestamp('"+dateFormat.format(date)+"','yyyy-mm-dd hh24:MI') and Type_reglement is null");
+        ResultSet rset = stmt.executeQuery("select Patient.Id_patient, Prenom_patient, Nom_patient, Patient_consultation.Id_consultation, Date_consultation, Patient_consultation.Type_reglement, Patient_consultation.Retard, Patient_consultation.Indicateur_anxiete from Patient join Patient_consultation on Patient.Id_patient = Patient_consultation.Id_patient join Consultation on Patient_consultation.Id_consultation = Consultation.Id_consultation where Date_consultation<=to_timestamp('"+dateFormat.format(date)+"','yyyy-mm-dd hh24:MI') and (Type_reglement is null or Retard is null or Indicateur_anxiete is null)");
         System.out.println("Vous avez fini un RDV.");
-        System.out.println("Liste de consultations passées et non traitées:");
+        System.out.println("Liste des consultations passées et non traitées :");
+        System.out.println("Id_consultation" +  "\t" +  "Date consultation" + "\t" + "prenom patient" + "\t" + "nom patient" + "\t" +  "Indicateur anxiete" + "\t" + "Type_reglement" + "\t" + "Retard");
         while(rset.next())
         {
             System.out.print(rset.getString("Id_consultation") + "\t");
             System.out.print(rset.getString("Date_consultation") + "\t");
             System.out.print(rset.getString("Prenom_patient") + "\t");
             System.out.print(rset.getString("Nom_patient") + "\t" + "\t");
+            if(rset.getObject("Indicateur_anxiete") == null)
+                System.out.print("X      ");
+            else
+                System.out.print(rset.getString("Indicateur anxiete")+ "\t");
+
+            if(rset.getObject("Type_reglement") == null)
+                System.out.print("X    ");
+            else
+                System.out.print(rset.getString("Type_reglement")+ "\t");
+
+            if(rset.getObject("Retard") == null)
+                System.out.print("X    ");
+            else
+                System.out.print(rset.getString("Retard")+ "\t");
+
             System.out.println();
         }
         System.out.print("Entrez l'ID de la consultation que vous souhaitez traiter: ");
         Scanner scan = new Scanner(System.in);
-        int id_Patient = 0;
+        int id_Patient1 = 0;
+        int id_Patient2 =0;
+        int id_Patient3 = 0;
         int id_Consultation = scan.nextInt();
         int nbPatient=0;
-        String Nom_Patient="";
+        String Retard = "";
+        String Nom_Patient1="";
+        String Nom_Patient2="";
+        String Nom_Patient3="";
+        String Prenom_patient1 = "";
+        String Prenom_patient2 ="";
+        String Prenom_patient3="";
+        int id_patient_retard = 0;
+        int id_patient_non_retard1 =0;
+        int id_patient_non_retard2 = 0;
+        int type_payment=0;
+        boolean payment_rempli = false;
+        boolean retard_rempli1 = false;
+        String personne_retard ="";
         String type_consultation="";
+        int nbre_personne_retard = 0;
         rset = stmt.executeQuery("select Type_consultation from Consultation where Id_consultation="+id_Consultation);
         while(rset.next())
         {
@@ -255,24 +291,221 @@ public class Methodesbdd
         switch(type_consultation){
             case "individuelle":
                 nbPatient=1;
-                rset = stmt.executeQuery("select Patient.Id_patient, Nom_patient, Patient_consultation.Id_consultation from Patient join Patient_consultation on Patient.Id_patient = Patient_consultation.Id_patient join Consultation on Patient_consultation.Id_consultation ="+id_Consultation);
+                rset = stmt.executeQuery("select Patient.Id_patient, Nom_patient, Prenom_patient, Patient_consultation.Id_consultation from Patient join Patient_consultation on Patient.Id_patient = Patient_consultation.Id_patient join Consultation on Patient_consultation.Id_consultation ="+id_Consultation);
                 while(rset.next())
                 {
-                    id_Patient=rset.getInt(1);
-                    Nom_Patient=rset.getString(2);
+                    id_Patient1=rset.getInt(1);
+                    Nom_Patient1=rset.getString(2);
+                    Prenom_patient1 = rset.getString(3);
                 }
-                System.out.println("Entrez");
+
+                rset = stmt.executeQuery("select Type_reglement, Retard from Patient_consultation where Id_patient ="+id_Patient1+ "and Id_consultation = "+id_Consultation);
+                while (rset.next())
+                {
+                    if(rset.getObject(1) != null)
+                        payment_rempli = true;
+                    if (rset.getObject(2) != null)
+                        retard_rempli1 = true;
+                }
+
+                if (!payment_rempli)
+                {
+                    System.out.println("Choisissez le type de règlement : ");
+                    System.out.print("Entrez 1 si CB, 2 si chèque, 3 si espèce : ");
+                    type_payment = scan.nextInt();
+                    if (type_payment == 1)
+                        stmt.executeUpdate("Update Patient_consultation set Type_reglement = 'CB' where Id_consultation ="+id_Consultation + "and Id_patient ="+id_Patient1);
+                    else if (type_payment == 2)
+                        stmt.executeUpdate("Update Patient_consultation set Type_reglement = 'CHEQUE' where Id_consultation ="+id_Consultation + "and Id_patient ="+id_Patient1);
+                    else if (type_payment == 3)
+                        stmt.executeUpdate("Update Patient_consultation set Type_reglement = 'ESPECE' where Id_consultation ="+id_Consultation + "and Id_patient ="+id_Patient1);
+                }
+
+                if (!retard_rempli1)
+                {
+                    while(!Retard.equals("O") && !Retard.equals("N"))
+                    {
+                        System.out.println("Le patient était-il en retard ? Entrez O pour oui N pour non : ");
+                        Retard = scan.next();
+                        System.out.println("Retard : " + Retard);
+                    }
+                    if (Retard.equals("O"))
+                        stmt.executeUpdate("Update Patient_consultation set Retard = 'Oui' where Id_consultation ="+id_Consultation + "and Id_patient ="+id_Patient1);
+                    else
+                        stmt.executeUpdate("Update Patient_consultation set Retard = 'Non' where Id_consultation ="+id_Consultation + "and Id_patient ="+id_Patient1);
+                }
+
+                if (retard_rempli1 && payment_rempli)
+                    System.out.println("Type de réglement et détermination du retard traité pour le patient : " + Nom_Patient1 + " " + Nom_Patient1);
+
                 break;
             case "couple":
-                nbPatient=2;;
+                nbPatient=2;
+                rset = stmt.executeQuery("select Patient.Id_patient, Nom_patient, Prenom_patient, Patient_consultation.Id_consultation from Patient join Patient_consultation on Patient.Id_patient = Patient_consultation.Id_patient join Consultation on Patient_consultation.Id_consultation ="+id_Consultation);
+                while(rset.next())
+                {
+                    if (id_Patient1 == 0)
+                        id_Patient1 =rset.getInt(1);
+                    else
+                        id_Patient2 = rset.getInt(1);
+
+                    if (Prenom_patient1 .equals(""))
+                        Prenom_patient1 =rset.getString(2);
+                    else
+                        Prenom_patient2 = rset.getString(2);
+
+                    if (Nom_Patient1.equals(""))
+                        Nom_Patient1 =rset.getString(3);
+                    else
+                        Nom_Patient2 = rset.getString(3);
+                }
+
+                rset = stmt.executeQuery("select Type_reglement, Retard, Id_patient from Patient_consultation where Id_patient ="+id_Patient1+ "and Id_consultation = "+id_Consultation);
+                while (rset.next()) {
+                    if (rset.getObject(1) != null)
+                        payment_rempli = true;
+                    if (rset.getObject(2) != null)
+                        retard_rempli1 = true;
+                }
+
+                if (!payment_rempli) {
+                    System.out.println("Choisissez le type de règlement pour la consultation en couple : ");
+                    System.out.print("Entrez 1 si CB, 2 si chèque, 3 si espèce : ");
+                    type_payment = scan.nextInt();
+                    if (type_payment == 1) {
+                        stmt.executeUpdate("Update Patient_consultation set Type_reglement = 'CB' where Id_consultation =" + id_Consultation + "and Id_patient =" + id_Patient1);
+                        stmt.executeUpdate("Update Patient_consultation set Type_reglement = 'CB' where Id_consultation =" + id_Consultation + "and Id_patient =" + id_Patient2);
+                    } else if (type_payment == 2) {
+                        stmt.executeUpdate("Update Patient_consultation set Type_reglement = 'CHEQUE' where Id_consultation =" + id_Consultation + "and Id_patient =" + id_Patient1);
+                        stmt.executeUpdate("Update Patient_consultation set Type_reglement = 'CHEQUE' where Id_consultation =" + id_Consultation + "and Id_patient =" + id_Patient2);
+                    } else if (type_payment == 3) {
+                        stmt.executeUpdate("Update Patient_consultation set Type_reglement = 'ESPECE' where Id_consultation =" + id_Consultation + "and Id_patient =" + id_Patient1);
+                        stmt.executeUpdate("Update Patient_consultation set Type_reglement = 'ESPECE' where Id_consultation =" + id_Consultation + "and Id_patient =" + id_Patient3);
+                    }
+                }
+
+                if (!retard_rempli1)
+                {
+                    while(!personne_retard.equals("O") && !personne_retard.equals("N"))
+                    {
+                        System.out.println("Une personne ou plus était-elle en retard ? Entrez O pour oui, N pour non");
+                        personne_retard = scan.next();
+                    }
+
+                    if (personne_retard.equals("O"))
+                    {
+                        while(nbre_personne_retard != 1 && nbre_personne_retard != 2)
+                        {
+                            System.out.println("Entrez le nombre de personnes en retard : ");
+                            nbre_personne_retard = scan.nextInt();
+                        }
+                        if (nbre_personne_retard == 2)
+                        {
+                            stmt.executeUpdate("Update Patient_consultation set Retard = 'Oui' where Id_consultation ="+id_Consultation + "and Id_patient ="+id_Patient1);
+                            stmt.executeUpdate("Update Patient_consultation set Retard = 'Oui' where Id_consultation ="+id_Consultation + "and Id_patient ="+id_Patient2);
+                        }
+                        if (nbre_personne_retard != 2)
+                        {
+                            rset = stmt.executeQuery("select Patient.Id_patient, Nom_patient, Prenom_patient from Patient where Id_patient in (" + id_Patient1 + "," + id_Patient2 + ")");
+                            System.out.println("ID Patient " + "\t" + "Nom Patient" + "\t" + "Prénom Patient");
+                            while (rset.next())
+                            {
+                                System.out.print(rset.getInt("Id_patient") + "\t");
+                                System.out.print(rset.getString("Nom_patient") + "\t");
+                                System.out.print(rset.getString("Prenom_patient")+ "\t");
+                                System.out.println("\n");
+                            }
+                            System.out.println("Entrez l'ID de la personne qui a été en retard : ");
+                            id_patient_retard = scan.nextInt();
+                            stmt.executeUpdate("Update Patient_consultation set Retard = 'Oui' where Id_consultation ="+id_Consultation + "and Id_patient ="+id_patient_retard);
+
+                            rset = stmt.executeQuery("select Patient.Id_patient, Nom_patient, Prenom_patient from Patient where Id_patient in (" + id_Patient1 + "," + id_Patient2 + ")");
+                            System.out.println("ID Patient " + "\t" + "Nom Patient" + "\t" + "Prénom Patient");
+                            while (rset.next())
+                            {
+                                System.out.print(rset.getInt("Id_patient") + "\t");
+                                System.out.print(rset.getString("Nom_patient") + "\t");
+                                System.out.print(rset.getString("Prenom_patient")+ "\t");
+                                System.out.println("\n");
+                            }
+                            System.out.println("Entrez l'ID de la personne qui n'a pas été en retard : ");
+                            id_patient_non_retard1 = scan.nextInt();
+                            stmt.executeUpdate("Update Patient_consultation set Retard = 'Non' where Id_consultation ="+id_Consultation + "and Id_patient ="+id_patient_non_retard1);
+                        }
+                    }
+                    else
+                    {
+                        stmt.executeUpdate("Update Patient_consultation set Retard = 'Non' where Id_consultation ="+id_Consultation + "and Id_patient ="+id_Patient1);
+                        stmt.executeUpdate("Update Patient_consultation set Retard = 'Non' where Id_consultation ="+id_Consultation + "and Id_patient ="+id_Patient2);
+                    }
+                }
+
+
                 break;
             case "famille":
                 nbPatient=3;
+                while(rset.next())
+                {
+                    if (id_Patient1 == 0)
+                        id_Patient1 =rset.getInt(1);
+                    else if (id_Patient2 == 0)
+                        id_Patient2 = rset.getInt(1);
+                    else
+                        id_Patient3 = rset.getInt(1);
+
+                    if (Prenom_patient1 .equals(""))
+                        Prenom_patient1 =rset.getString(2);
+                    else if (Prenom_patient2.equals(""))
+                        Prenom_patient2 = rset.getString(2);
+                    else
+                        Prenom_patient3 = rset.getString(2);
+
+                    if (Nom_Patient1.equals(""))
+                        Nom_Patient1 =rset.getString(3);
+                    else if (Nom_Patient2.equals(""))
+                        Nom_Patient2 = rset.getString(3);
+                    else
+                        Nom_Patient3 = rset.getString(3);
+                }
+
+                rset = stmt.executeQuery("select Type_reglement, Retard, Id_patient from Patient_consultation where Id_patient ="+id_Patient1+ "and Id_consultation = "+id_Consultation);
+                while (rset.next()) {
+                    if (rset.getObject(1) != null)
+                        payment_rempli = true;
+                    if (rset.getObject(2) != null)
+                        retard_rempli1 = true;
+                }
+
+                if (!payment_rempli)
+                {
+                    System.out.println("Choisissez le type de règlement pour la consultation en couple : ");
+                    System.out.print("Entrez 1 si CB, 2 si chèque, 3 si espèce : ");
+                    type_payment = scan.nextInt();
+                    if (type_payment == 1) {
+                        stmt.executeUpdate("Update Patient_consultation set Type_reglement = 'CB' where Id_consultation =" + id_Consultation + "and Id_patient =" + id_Patient1);
+                        stmt.executeUpdate("Update Patient_consultation set Type_reglement = 'CB' where Id_consultation =" + id_Consultation + "and Id_patient =" + id_Patient2);
+                        stmt.executeUpdate("Update Patient_consultation set Type_reglement = 'CB' where Id_consultation =" + id_Consultation + "and Id_patient =" + id_Patient3);
+                    } else if (type_payment == 2) {
+                        stmt.executeUpdate("Update Patient_consultation set Type_reglement = 'CHEQUE' where Id_consultation =" + id_Consultation + "and Id_patient =" + id_Patient1);
+                        stmt.executeUpdate("Update Patient_consultation set Type_reglement = 'CHEQUE' where Id_consultation =" + id_Consultation + "and Id_patient =" + id_Patient2);
+                        stmt.executeUpdate("Update Patient_consultation set Type_reglement = 'CHEQUE' where Id_consultation =" + id_Consultation + "and Id_patient =" + id_Patient3);
+                    } else if (type_payment == 3) {
+                        stmt.executeUpdate("Update Patient_consultation set Type_reglement = 'ESPECE' where Id_consultation =" + id_Consultation + "and Id_patient =" + id_Patient1);
+                        stmt.executeUpdate("Update Patient_consultation set Type_reglement = 'ESPECE' where Id_consultation =" + id_Consultation + "and Id_patient =" + id_Patient3);
+                        stmt.executeUpdate("Update Patient_consultation set Type_reglement = 'ESPECE' where Id_consultation =" + id_Consultation + "and Id_patient =" + id_Patient3);
+                    }
+                }
+
+                if (!retard_rempli1)
+                {
+
+                }
+
+
+
+
                 break;
         }
-
-        String indicateur_anxiete,type_reglement,retard;
-
 
     }
 
