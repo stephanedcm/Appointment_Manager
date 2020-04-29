@@ -11,6 +11,84 @@ import java.util.Date;
 
 public class Methodesbdd
 {
+
+    public void add_mot_cle(Connection conn) throws SQLException {
+        Scanner in = new Scanner(System.in);
+        int nbr_mot_cle = 0;
+        String mot_cle = "";
+        int id_patient = 0;
+        String prenom_patient = "";
+        String nom_patient = "";
+        int cpt = 0;
+        int cptNextVal = 0;
+        int id_mot_cle = 0;
+        boolean first_time_zero = false;
+        boolean first_time_after_zero = false;
+        Statement stmt= conn.createStatement();
+
+        System.out.println("Vous avez choisi d'ajouter un ou plusieurs mots clés \n");
+        while(cpt == 0)
+        {
+            System.out.println("Entrez le nom de famille du patient à qui vous souhaitez les ajouter : ");
+            nom_patient = in.nextLine();
+
+            ResultSet rset = stmt.executeQuery("select Id_patient, Nom_patient, Prenom_patient from Patient where Nom_patient='"+ nom_patient +"'");
+            System.out.println("N° Patient Nom patient \t  Prenom patient");
+            while(rset.next())
+            {
+                cpt++;
+                System.out.print(rset.getInt(1) + "\t");
+                System.out.print(rset.getString(2) + "\t" + "\t" + "\t");
+                System.out.print(rset.getString(3) + "\t");
+                System.out.println("\n");
+            }
+        }
+        System.out.println("Entrez le numéro du patient auquel vous souhaitez les ajouter : ");
+
+        id_patient = in.nextInt();
+
+        System.out.println("Entrez le nombre de mots clés que vous souhaitez ajouter au patient " + nom_patient + " " + prenom_patient +" : ");
+        nbr_mot_cle = in.nextInt();
+
+
+
+
+
+        for (int i=0; i<nbr_mot_cle; i++)
+        {
+            System.out.println("Entrez les mots-clés un à un : ");
+            mot_cle = in.next();
+            ResultSet rset = stmt.executeQuery("select mots_cles_seq.nextval from mots_cles where mots_cle_id=1");
+            while(rset.next()) {
+                cptNextVal++;
+                id_mot_cle = (rset.getInt(1)+1);
+            }
+            if(cptNextVal==0){
+                id_mot_cle=1;
+            }
+            stmt.executeUpdate("INSERT INTO mots_cles VALUES ("+id_mot_cle+", '"+mot_cle+"')");
+            System.out.println("Id mot cle : " + id_mot_cle);
+            stmt.executeUpdate("INSERT INTO patient_mots_cles VALUES ("+id_mot_cle + ", "+id_patient + ")");
+        }
+
+        ResultSet rset = stmt.executeQuery("select patient_mots_cles.id_patient, Prenom_patient, Nom_patient, patient_mots_cles.mots_cle_id, nom_mots_cle from mots_cles join patient_mots_cles on patient_mots_cles.mots_cle_id = mots_cles.mots_cle_id join Patient on Patient.Id_patient = Patient_mots_cles.id_patient where Patient.Id_patient ="+id_patient);
+        System.out.println("N° Patient  Prénom patient    nom patient       mots cle id     nom mot cle    ");
+        while (rset.next())
+        {
+            System.out.print(rset.getInt(1) + "\t");
+            System.out.print(rset.getString(2) + "\t");
+            System.out.print(rset.getString(3) + "\t");
+            System.out.print(rset.getInt(4)+ "\t");
+            System.out.print(rset.getString(5) + "\t");
+            System.out.println("\n");
+        }
+
+
+
+
+    }
+
+
     public static void rdv_psy(Connection conn) throws SQLException {
         String jour="";
         String mois="";
@@ -232,32 +310,34 @@ public class Methodesbdd
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Date date = new Date();
         Statement stmt= conn.createStatement();
-        ResultSet rset = stmt.executeQuery("select Patient.Id_patient, Prenom_patient, Nom_patient, Patient_consultation.Id_consultation, Date_consultation, Patient_consultation.Type_reglement, Patient_consultation.Retard, Patient_consultation.Indicateur_anxiete from Patient join Patient_consultation on Patient.Id_patient = Patient_consultation.Id_patient join Consultation on Patient_consultation.Id_consultation = Consultation.Id_consultation where Date_consultation<=to_timestamp('"+dateFormat.format(date)+"','yyyy-mm-dd hh24:MI') and (Type_reglement is null or Retard is null or Indicateur_anxiete is null)");
+        ResultSet rset = stmt.executeQuery("select Patient.Id_patient, Prenom_patient, Nom_patient, Patient_consultation.Id_consultation, Date_consultation, Patient_consultation.Type_reglement, Patient_consultation.Retard, Patient_consultation.Indicateur_anxiete from Patient join Patient_consultation on Patient.Id_patient = Patient_consultation.Id_patient join Consultation on Patient_consultation.Id_consultation = Consultation.Id_consultation where Date_consultation<=to_timestamp('"+dateFormat.format(date)+"','yyyy-mm-dd hh24:MI') and (Type_reglement is null or Retard is null)");
         System.out.println("Vous avez fini un RDV.");
         System.out.println("Liste des consultations passées et non traitées :");
-        System.out.println("Id_consultation" +  "\t" +  "Date consultation" + "\t" + "prenom patient" + "\t" + "nom patient" + "\t" +  "Indicateur anxiete" + "\t" + "Type_reglement" + "\t" + "Retard");
+        System.out.println("N° Consultation" +  "\t" +  "Date consultation" + "\t" + "\t" + "Prénom patient" + "\t" + "Nom patient" + "\t" +  "Indicateur anxiete" + "\t" + "Type de reglement" + "\t" + "Retard");
         while(rset.next())
         {
-            System.out.print(rset.getString("Id_consultation") + "\t");
+            System.out.println("");
+            System.out.print(rset.getString("Id_consultation") + "\t" + "\t" + "\t" + "\t" );
             System.out.print(rset.getString("Date_consultation") + "\t");
-            System.out.print(rset.getString("Prenom_patient") + "\t");
-            System.out.print(rset.getString("Nom_patient") + "\t" + "\t");
+            System.out.print(rset.getString("Prenom_patient") + "\t" + "\t");
+            System.out.print(rset.getString("Nom_patient") + "\t" + "\t" + "\t");
             if(rset.getObject("Indicateur_anxiete") == null)
-                System.out.print("X      ");
+                System.out.print("X                   ");
             else
-                System.out.print(rset.getString("Indicateur anxiete")+ "\t");
+                System.out.print(rset.getString("Indicateur anxiete                   ")+ "\t");
 
             if(rset.getObject("Type_reglement") == null)
-                System.out.print("X    ");
+                System.out.print("X                    ");
             else
-                System.out.print(rset.getString("Type_reglement")+ "\t");
+                System.out.print(rset.getString("Type_reglement                 ")+ "\t");
 
             if(rset.getObject("Retard") == null)
-                System.out.print("X    ");
+                System.out.print("X                    ");
             else
-                System.out.print(rset.getString("Retard")+ "\t");
+                System.out.print(rset.getString("Retard                       ")+ "\t");
 
             System.out.println();
+
         }
         System.out.print("Entrez l'ID de la consultation que vous souhaitez traiter: ");
         Scanner scan = new Scanner(System.in);
@@ -277,8 +357,11 @@ public class Methodesbdd
         int id_patient_non_retard1 =0;
         int id_patient_non_retard2 = 0;
         int type_payment=0;
+        int indicateur_anxiete = 0;
         boolean payment_rempli = false;
         boolean retard_rempli1 = false;
+        boolean indicateur_anxiete_rempli = false;
+        String Stress = "";
         String personne_retard ="";
         String type_consultation="";
         int nbre_personne_retard = 0;
@@ -299,13 +382,36 @@ public class Methodesbdd
                     Prenom_patient1 = rset.getString(3);
                 }
 
-                rset = stmt.executeQuery("select Type_reglement, Retard from Patient_consultation where Id_patient ="+id_Patient1+ "and Id_consultation = "+id_Consultation);
+                rset = stmt.executeQuery("select Type_reglement, Retard, Indicateur_anxiete from Patient_consultation where Id_patient ="+id_Patient1+ "and Id_consultation = "+id_Consultation);
                 while (rset.next())
                 {
                     if(rset.getObject(1) != null)
                         payment_rempli = true;
                     if (rset.getObject(2) != null)
                         retard_rempli1 = true;
+                    if (rset.getObject(3) != null)
+                        indicateur_anxiete_rempli = true;
+                }
+
+                if (!indicateur_anxiete_rempli)
+                {
+                    while(!Stress.equals("O") && !Stress.equals("N"))
+                    {
+                        System.out.println("La consultation était-elle relative au stress ? Entrez O pour oui N pour non ");
+                        Stress = scan.next();
+                    }
+                    if (Stress.equals("O"))
+                    {
+                        while (indicateur_anxiete < 1 || indicateur_anxiete > 10)
+                        {
+                            System.out.println("Entre l'indicateur d'anxiété entre 1 et 10 compris pour le patient : " + Nom_Patient1 + " " + Prenom_patient1);
+                            indicateur_anxiete = scan.nextInt();
+                        }
+
+                        stmt.executeUpdate("Update Patient_consultation set Indicateur_anxiete = "+indicateur_anxiete + "where Id_consultation ="+id_Consultation + "and Id_patient ="+id_Patient1);
+                    }
+
+
                 }
 
                 if (!payment_rempli)
@@ -360,12 +466,48 @@ public class Methodesbdd
                         Nom_Patient2 = rset.getString(3);
                 }
 
-                rset = stmt.executeQuery("select Type_reglement, Retard, Id_patient from Patient_consultation where Id_patient ="+id_Patient1+ "and Id_consultation = "+id_Consultation);
+                rset = stmt.executeQuery("select Type_reglement, Retard, Indicateur_anxiete from Patient_consultation where Id_patient ="+id_Patient1+ "and Id_consultation = "+id_Consultation);
                 while (rset.next()) {
                     if (rset.getObject(1) != null)
                         payment_rempli = true;
                     if (rset.getObject(2) != null)
                         retard_rempli1 = true;
+                    if (rset.getObject(3) != null)
+                        indicateur_anxiete_rempli = true;
+
+                }
+
+                if (!indicateur_anxiete_rempli)
+                {
+                    while(!Stress.equals("O") && !Stress.equals("N"))
+                    {
+                        System.out.println("La consultation était-elle relative au stress ? Entrez O pour oui N pour non ");
+                        Stress = scan.next();
+                    }
+                    if (Stress.equals("O"))
+                    {
+
+                            while (indicateur_anxiete < 1 || indicateur_anxiete > 10)
+                            {
+                                System.out.println("Entre l'indicateur d'anxiété entre 1 et 10 compris pour le patient : " + Nom_Patient1 + " " + Prenom_patient1);
+                                indicateur_anxiete = scan.nextInt();
+                            }
+
+                            stmt.executeUpdate("Update Patient_consultation set Indicateur_anxiete = "+indicateur_anxiete + "where Id_consultation ="+id_Consultation + "and Id_patient ="+id_Patient1);
+
+                            indicateur_anxiete = 0;
+
+                            while (indicateur_anxiete < 1 || indicateur_anxiete > 10)
+                            {
+                                System.out.println("Entre l'indicateur d'anxiété entre 1 et 10 compris pour le patient : " + Nom_Patient2 + " " + Prenom_patient2);
+                                indicateur_anxiete = scan.nextInt();
+                            }
+
+                            stmt.executeUpdate("Update Patient_consultation set Indicateur_anxiete = "+indicateur_anxiete + "where Id_consultation ="+id_Consultation + "and Id_patient ="+id_Patient2);
+
+                    }
+
+
                 }
 
                 if (!payment_rempli) {
@@ -444,6 +586,7 @@ public class Methodesbdd
                 break;
             case "famille":
                 nbPatient=3;
+                rset = stmt.executeQuery("select Patient.Id_patient, Nom_patient, Prenom_patient, Patient_consultation.Id_consultation from Patient join Patient_consultation on Patient.Id_patient = Patient_consultation.Id_patient join Consultation on Patient_consultation.Id_consultation ="+id_Consultation);
                 while(rset.next())
                 {
                     if (id_Patient1 == 0)
@@ -468,17 +611,62 @@ public class Methodesbdd
                         Nom_Patient3 = rset.getString(3);
                 }
 
-                rset = stmt.executeQuery("select Type_reglement, Retard, Id_patient from Patient_consultation where Id_patient ="+id_Patient1+ "and Id_consultation = "+id_Consultation);
+                rset = stmt.executeQuery("select Type_reglement, Retard, Indicateur_anxiete from Patient_consultation where Id_patient ="+id_Patient1+ "and Id_consultation = "+id_Consultation);
                 while (rset.next()) {
                     if (rset.getObject(1) != null)
                         payment_rempli = true;
                     if (rset.getObject(2) != null)
                         retard_rempli1 = true;
+                    if (rset.getObject(3) != null)
+                        indicateur_anxiete_rempli = true;
+                }
+
+                if (!indicateur_anxiete_rempli)
+                {
+                    while(!Stress.equals("O") && !Stress.equals("N"))
+                    {
+                        System.out.println("La consultation était-elle relative au stress ? Entrez O pour oui N pour non ");
+                        Stress = scan.next();
+                    }
+                    if (Stress.equals("O"))
+                    {
+
+                        while (indicateur_anxiete < 1 || indicateur_anxiete > 10)
+                        {
+                            System.out.println("Entre l'indicateur d'anxiété entre 1 et 10 compris pour le patient : " + Nom_Patient1 + " " + Prenom_patient1);
+                            indicateur_anxiete = scan.nextInt();
+                        }
+
+                        stmt.executeUpdate("Update Patient_consultation set Indicateur_anxiete = "+indicateur_anxiete + "where Id_consultation ="+id_Consultation + "and Id_patient ="+id_Patient1);
+
+                        indicateur_anxiete = 0;
+
+                        while (indicateur_anxiete < 1 || indicateur_anxiete > 10)
+                        {
+                            System.out.println("Entre l'indicateur d'anxiété entre 1 et 10 compris pour le patient : " + Nom_Patient2 + " " + Prenom_patient2);
+                            indicateur_anxiete = scan.nextInt();
+                        }
+
+                        stmt.executeUpdate("Update Patient_consultation set Indicateur_anxiete = "+indicateur_anxiete + "where Id_consultation ="+id_Consultation + "and Id_patient ="+id_Patient2);
+
+                        indicateur_anxiete = 0;
+
+                        while (indicateur_anxiete < 1 || indicateur_anxiete > 10)
+                        {
+                            System.out.println("Entre l'indicateur d'anxiété entre 1 et 10 compris pour le patient : " + Nom_Patient3 + " " + Prenom_patient3);
+                            indicateur_anxiete = scan.nextInt();
+                        }
+
+                        stmt.executeUpdate("Update Patient_consultation set Indicateur_anxiete = "+indicateur_anxiete + "where Id_consultation ="+id_Consultation + "and Id_patient ="+id_Patient3);
+
+
+                    }
+
                 }
 
                 if (!payment_rempli)
                 {
-                    System.out.println("Choisissez le type de règlement pour la consultation en couple : ");
+                    System.out.println("Choisissez le type de règlement pour la consultation en famille : ");
                     System.out.print("Entrez 1 si CB, 2 si chèque, 3 si espèce : ");
                     type_payment = scan.nextInt();
                     if (type_payment == 1) {
@@ -496,10 +684,24 @@ public class Methodesbdd
                     }
                 }
 
-                if (!retard_rempli1)
-                {
+            if (!retard_rempli1)
+            {
+                System.out.println("Est-ce que la famille était en retard ? Entrez O pour oui N pour non");
 
+                Retard = scan.next();
+                if (Retard.equals("O"))
+                {
+                    stmt.executeUpdate("Update Patient_consultation set Retard = 'Oui' where Id_consultation =" + id_Consultation + "and Id_patient =" + id_Patient1);
+                    stmt.executeUpdate("Update Patient_consultation set Retard = 'Oui' where Id_consultation =" + id_Consultation + "and Id_patient =" + id_Patient2);
+                    stmt.executeUpdate("Update Patient_consultation set Retard = 'Oui' where Id_consultation =" + id_Consultation + "and Id_patient =" + id_Patient3);
                 }
+                else
+                {
+                    stmt.executeUpdate("Update Patient_consultation set Retard = 'Non' where Id_consultation =" + id_Consultation + "and Id_patient =" + id_Patient1);
+                    stmt.executeUpdate("Update Patient_consultation set Retard = 'Non' where Id_consultation =" + id_Consultation + "and Id_patient =" + id_Patient2);
+                    stmt.executeUpdate("Update Patient_consultation set Retard = 'Non' where Id_consultation =" + id_Consultation + "and Id_patient =" + id_Patient3);
+                }
+            }
 
 
 

@@ -156,9 +156,7 @@ CREATE TABLE mots_cles(
 		,CONSTRAINT mots_cles_PK PRIMARY KEY (mots_cle_id)
 		);
 
-INSERT INTO mots_cles VALUES (mots_cles_seq.nextval, 'Anxiété');
-INSERT INTO mots_cles VALUES (mots_cles_seq.nextval, 'Honte');
-INSERT INTO mots_cles VALUES (mots_cles_seq.nextval, 'Regard des autres');
+
 
 CREATE TABLE patient_mots_cles(
         mots_cle_id Varchar (50) NOT NULL ,
@@ -166,9 +164,6 @@ CREATE TABLE patient_mots_cles(
 	,CONSTRAINT patient_mots_cles_PK PRIMARY KEY (mots_cle_id,id_patient)
 );
 
-INSERT INTO patient_mots_cles VALUES (1, 1);
-INSERT INTO patient_mots_cles VALUES (1, 2);
-INSERT INTO patient_mots_cles VALUES (2, 2);
 
 
 CREATE VIEW consultp AS
