@@ -224,26 +224,26 @@ public class Methodesbdd
                             nom = scanner1.nextLine();
                             stmt= conn.createStatement();
                             rset = stmt.executeQuery("select Id_Patient,Nom_patient from Patient where Nom_patient ='"+nom+"'");
-
+                            if(cpt_patient==0){
+                                System.out.println("Le nom du patient rentré est inconnu.");
+                            }
                             while(rset.next()) {
                                 System.out.println("Id" + "\t" + "Nom");
                                 cpt_patient++;
                                 System.out.print(rset.getString("Id_Patient") + "\t");
                                 System.out.print(rset.getString("Nom_Patient") + "\t" + "\t");
                             }
-                            if(cpt_patient == 0){
-                                System.out.println("Le nom du patient rentré est inconnu.");
-                            }
                         }
                         System.out.print("\nVeuillez rentrer l'id du patient voulu: ");
                         int idPatient=scanner1.nextInt();
-                        stmt= conn.createStatement();
+                        //stmt= conn.createStatement();
                         //System.out.println("Consultation: "+idConsultation+" Patient: "+idPatient);
-                        stmt.executeUpdate("INSERT INTO Patient_consultation VALUES ("+idPatient+", "+idConsultation+", NULL, NULL, NULL, NULL)");
-                        System.out.println("Patient "+nom+" ajouté à la consultation "+idConsultation);
+                        //stmt.executeUpdate("INSERT INTO Patient_consultation VALUES ("+idPatient+", "+idConsultation+", NULL, NULL, NULL, NULL)");
+                        //System.out.println("Patient "+nom+" ajouté à la consultation "+idConsultation);
                     }
                     int check_2=0;
-                    while(check_2!=3){
+                    while(check_2!=5){
+                        check_2=0;
                         System.out.print("Veuillez rentrer la date de la consultation que vous voulez ajouter dans le format suivant jj/mm/yyyy/Ho/Mi: ");
                         Scanner scanner4 = new Scanner(System.in);
                         String date = scanner4.nextLine();
@@ -254,6 +254,12 @@ public class Methodesbdd
                         annee=scan2.next();
                         h=scan2.next();
                         m=scan2.next();
+                        Date today = Calendar.getInstance().getTime();
+                        Calendar today_calendar = Calendar.getInstance();
+                        today_calendar.setTime(today);
+                        int today_annee=today_calendar.get(Calendar.YEAR);
+                        int today_mois=today_calendar.get(Calendar.MONTH)+1;
+                        int today_jour=today_calendar.get(Calendar.DAY_OF_MONTH);
                         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
                         String dateInString = ""+jour+"-"+mois+"-"+annee+"";
                         Date date1 = formatter.parse(dateInString);
@@ -266,10 +272,38 @@ public class Methodesbdd
                         int annee1=c.get(Calendar.YEAR);
                         int mois1=c.get(Calendar.MONTH)+1;
                         int jour1=c.get(Calendar.DAY_OF_MONTH);
+                        int hour = Integer.parseInt(h);
+                        int minute = Integer.parseInt(m);
+                        int year = Integer.parseInt(annee);
+                        int month = Integer.parseInt(mois);
+                        int dayy = Integer.parseInt(jour);
+                        //System.out.println(annee+" "+mois+" "+jour);
+                        //System.out.println(annee1+" "+mois1+" "+jour1);
+                        //System.out.println(dayOfWeek);
                         // closing the scanner stream
                         scan2.close();
                         //System.out.println(annee+mois+jour+h+m+type);
-                        int hour = Integer.parseInt(h);
+                        System.out.println(today_annee+" "+today_mois+" "+today_jour+" "+year+" "+month+" "+dayy);
+                        if(today_annee<=year){
+                            if(today_mois<=month){
+                                check_2++;
+                            }
+                            else{
+                                System.out.println("Veuillez rentrer une date future.");
+                                check_2=0;
+                            }
+                        }
+                        else{
+                            System.out.println("Veuillez rentrer une date future.");
+                            check_2=0;
+                        }
+                        if(minute>=0 && minute<60){
+                            check_2++;
+                        }
+                        else{
+                            System.out.println("Veuillez rentrer une heure valide.");
+                            check_2=0;
+                        }
                         if(hour>=8 && hour<=20){
                             check_2++;
                         }
@@ -290,13 +324,17 @@ public class Methodesbdd
                         rset.last();
                         int count = rset.getRow();
                         rset.beforeFirst();
+                        //System.out.println(count);
                         if(count<20){
                             check_2++;
+                            System.out.println(check_2);
                         }
                         else{
                             System.out.println("La psychologue ne peut travailler que 10 heures par jour.");
                             check_2=0;
                         }
+
+                        //System.out.println(check_2);
                     }
 
                     // create statement obj
