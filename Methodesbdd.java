@@ -155,6 +155,75 @@ public class Methodesbdd
 
     }
 
+    public void add_posture(Connection conn) throws SQLException {
+        Scanner in = new Scanner(System.in);
+        int nbr_posture = 0;
+        String posture = "";
+        int id_patient = 0;
+        String prenom_patient = "";
+        String nom_patient = "";
+        int cpt = 0;
+        int cptNextVal = 0;
+        int id_posture = 0;
+        Statement stmt= conn.createStatement();
+
+        System.out.println("Vous avez choisi d'ajouter une ou plusieurs posture \n");
+        while(cpt == 0)
+        {
+            System.out.println("Entrez le nom de famille du patient à qui vous souhaitez les ajouter : ");
+            nom_patient = in.nextLine();
+
+            ResultSet rset = stmt.executeQuery("select Id_patient, Nom_patient, Prenom_patient from Patient where Nom_patient='"+ nom_patient +"'");
+            System.out.println("N° Patient Nom patient \t  Prenom patient");
+            while(rset.next())
+            {
+                cpt++;
+                System.out.print(rset.getInt(1) + "\t");
+                System.out.print(rset.getString(2) + "\t" + "\t" + "\t");
+                System.out.print(rset.getString(3) + "\t");
+                System.out.println("\n");
+            }
+        }
+        System.out.println("Entrez le numéro du patient auquel vous souhaitez les ajouter : ");
+
+        id_patient = in.nextInt();
+
+        System.out.println("Entrez le nombre de posture que vous souhaitez ajouter au patient " + nom_patient + " " + prenom_patient +" : ");
+        nbr_posture = in.nextInt();
+
+
+
+
+
+        for (int i=0; i<nbr_posture; i++)
+        {
+            System.out.println("Entrez les Postures une à une : ");
+            posture = in.next();
+            ResultSet rset = stmt.executeQuery("select Posture_seq.nextval from Posture where Posture_id=1");
+            while(rset.next()) {
+                cptNextVal++;
+                id_posture= (rset.getInt(1)+1);
+            }
+            if(cptNextVal==0){
+                id_posture=1;
+            }
+            stmt.executeUpdate("INSERT INTO Posture VALUES ("+id_posture+", '"+posture+"')");
+            stmt.executeUpdate("INSERT INTO patient_posture VALUES ("+id_posture + ", "+id_patient + ")");
+        }
+
+        ResultSet rset = stmt.executeQuery("select patient_posture.patient_id, Prenom_patient, Nom_patient, patient_posture.posture_id, nom_posture from Posture join patient_posture on patient_posture.posture_id = Posture.posture_id join Patient on Patient.Id_patient = patient_posture.patient_id where Patient.Id_patient ="+id_patient);
+        System.out.println("N° Patient  Prénom patient    nom patient       Posture id     nom posture    ");
+        while (rset.next())
+        {
+            System.out.print(rset.getInt(1) + "\t");
+            System.out.print(rset.getString(2) + "\t");
+            System.out.print(rset.getString(3) + "\t");
+            System.out.print(rset.getInt(4)+ "\t");
+            System.out.print(rset.getString(5) + "\t");
+            System.out.println("\n");
+        }
+    }
+
 
     public static void rdv_psy(Connection conn) throws SQLException, ParseException {
         String jour="";

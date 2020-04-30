@@ -17,7 +17,9 @@ public class Connexion {
         Statement stmt = conn.createStatement();
         Methodesbdd test = new Methodesbdd();
 
-        test.add_mot_cle(conn);
+        //test.add_mot_cle(conn);
+        //test.add_comportement(conn);
+        test.add_posture(conn);
         //test.rdv_psy(conn);
         //test.fin_rdv(conn);
         //user = test.login(conn);
