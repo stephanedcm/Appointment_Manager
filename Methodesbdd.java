@@ -24,8 +24,6 @@ public class Methodesbdd
         int cpt = 0;
         int cptNextVal = 0;
         int id_mot_cle = 0;
-        boolean first_time_zero = false;
-        boolean first_time_after_zero = false;
         Statement stmt= conn.createStatement();
 
         System.out.println("Vous avez choisi d'ajouter un ou plusieurs mots clés \n");
@@ -85,8 +83,75 @@ public class Methodesbdd
             System.out.println("\n");
         }
 
+    }
+
+    public void add_comportement(Connection conn) throws SQLException {
+        Scanner in = new Scanner(System.in);
+        int nbr_comportement = 0;
+        String comportement = "";
+        int id_patient = 0;
+        String prenom_patient = "";
+        String nom_patient = "";
+        int cpt = 0;
+        int cptNextVal = 0;
+        int id_comportement = 0;
+        Statement stmt= conn.createStatement();
+
+        System.out.println("Vous avez choisi d'ajouter un ou plusieurs comportements \n");
+        while(cpt == 0)
+        {
+            System.out.println("Entrez le nom de famille du patient à qui vous souhaitez les ajouter : ");
+            nom_patient = in.nextLine();
+
+            ResultSet rset = stmt.executeQuery("select Id_patient, Nom_patient, Prenom_patient from Patient where Nom_patient='"+ nom_patient +"'");
+            System.out.println("N° Patient Nom patient \t  Prenom patient");
+            while(rset.next())
+            {
+                cpt++;
+                System.out.print(rset.getInt(1) + "\t");
+                System.out.print(rset.getString(2) + "\t" + "\t" + "\t");
+                System.out.print(rset.getString(3) + "\t");
+                System.out.println("\n");
+            }
+        }
+        System.out.println("Entrez le numéro du patient auquel vous souhaitez les ajouter : ");
+
+        id_patient = in.nextInt();
+
+        System.out.println("Entrez le nombre de Comportements que vous souhaitez ajouter au patient " + nom_patient + " " + prenom_patient +" : ");
+        nbr_comportement = in.nextInt();
 
 
+
+
+
+        for (int i=0; i<nbr_comportement; i++)
+        {
+            System.out.println("Entrez les comportements un à un : ");
+            comportement = in.next();
+            ResultSet rset = stmt.executeQuery("select Comportement_seq.nextval from Comportement where comportement_id=1");
+            while(rset.next()) {
+                cptNextVal++;
+                id_comportement= (rset.getInt(1)+1);
+            }
+            if(cptNextVal==0){
+                id_comportement=1;
+            }
+            stmt.executeUpdate("INSERT INTO Comportement VALUES ("+id_comportement+", '"+comportement+"')");
+            stmt.executeUpdate("INSERT INTO patient_comportement VALUES ("+id_comportement + ", "+id_patient + ")");
+        }
+
+        ResultSet rset = stmt.executeQuery("select patient_comportement.id_patient, Prenom_patient, Nom_patient, patient_comportement.comportement_id, nom_comportement from Comportement join patient_comportement on patient_comportement.comportement_id = Comportement.comportement_id join Patient on Patient.Id_patient = Patient_comportement.id_patient where Patient.Id_patient ="+id_patient);
+        System.out.println("N° Patient  Prénom patient    nom patient       Comportement id     nom comportement    ");
+        while (rset.next())
+        {
+            System.out.print(rset.getInt(1) + "\t");
+            System.out.print(rset.getString(2) + "\t");
+            System.out.print(rset.getString(3) + "\t");
+            System.out.print(rset.getInt(4)+ "\t");
+            System.out.print(rset.getString(5) + "\t");
+            System.out.println("\n");
+        }
 
     }
 
@@ -159,14 +224,15 @@ public class Methodesbdd
                             nom = scanner1.nextLine();
                             stmt= conn.createStatement();
                             rset = stmt.executeQuery("select Id_Patient,Nom_patient from Patient where Nom_patient ='"+nom+"'");
-                            if(cpt_patient==0){
-                                System.out.println("Le nom du patient rentré est inconnu.");
-                            }
+
                             while(rset.next()) {
                                 System.out.println("Id" + "\t" + "Nom");
                                 cpt_patient++;
                                 System.out.print(rset.getString("Id_Patient") + "\t");
                                 System.out.print(rset.getString("Nom_Patient") + "\t" + "\t");
+                            }
+                            if(cpt_patient == 0){
+                                System.out.println("Le nom du patient rentré est inconnu.");
                             }
                         }
                         System.out.print("\nVeuillez rentrer l'id du patient voulu: ");
@@ -177,8 +243,7 @@ public class Methodesbdd
                         System.out.println("Patient "+nom+" ajouté à la consultation "+idConsultation);
                     }
                     int check_2=0;
-                    while(check_2!=8){
-                        check_2=0;
+                    while(check_2!=3){
                         System.out.print("Veuillez rentrer la date de la consultation que vous voulez ajouter dans le format suivant jj/mm/yyyy/Ho/Mi: ");
                         Scanner scanner4 = new Scanner(System.in);
                         String date = scanner4.nextLine();
@@ -189,12 +254,6 @@ public class Methodesbdd
                         annee=scan2.next();
                         h=scan2.next();
                         m=scan2.next();
-                        Date today = Calendar.getInstance().getTime();
-                        Calendar today_calendar = Calendar.getInstance();
-                        today_calendar.setTime(today);
-                        int today_annee=today_calendar.get(Calendar.YEAR);
-                        int today_mois=today_calendar.get(Calendar.MONTH)+1;
-                        int today_jour=today_calendar.get(Calendar.DAY_OF_MONTH);
                         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
                         String dateInString = ""+jour+"-"+mois+"-"+annee+"";
                         Date date1 = formatter.parse(dateInString);
@@ -207,25 +266,10 @@ public class Methodesbdd
                         int annee1=c.get(Calendar.YEAR);
                         int mois1=c.get(Calendar.MONTH)+1;
                         int jour1=c.get(Calendar.DAY_OF_MONTH);
-                        int hour = Integer.parseInt(h);
-                        int minute = Integer.parseInt(m);
-                        int year = Integer.parseInt(annee);
-                        int month = Integer.parseInt(mois);
-                        int dayy = Integer.parseInt(jour);
-                        //System.out.println(annee+" "+mois+" "+jour);
-                        //System.out.println(annee1+" "+mois1+" "+jour1);
-                        //System.out.println(dayOfWeek);
                         // closing the scanner stream
                         scan2.close();
                         //System.out.println(annee+mois+jour+h+m+type);
-                        //System.out.println(today_annee+" "+today_mois+" "+today_jour+" "+year+" "+month+" "+dayy);
-                        if(minute>=0 && minute<60){
-                            check_2++;
-                        }
-                        else{
-                            System.out.println("Veuillez rentrer une heure valide.");
-                            check_2=0;
-                        }
+                        int hour = Integer.parseInt(h);
                         if(hour>=8 && hour<=20){
                             check_2++;
                         }
@@ -246,7 +290,6 @@ public class Methodesbdd
                         rset.last();
                         int count = rset.getRow();
                         rset.beforeFirst();
-                        //System.out.println(count);
                         if(count<20){
                             check_2++;
                         }
@@ -254,26 +297,6 @@ public class Methodesbdd
                             System.out.println("La psychologue ne peut travailler que 10 heures par jour.");
                             check_2=0;
                         }
-                        if(today_annee<=year){
-                            if(today_mois<=month){
-                                if(today_jour<=dayy){
-                                    check_2++;
-                                }
-                                else{
-                                    System.out.println("Veuillez rentrer une date future.");
-                                    check_2=0;
-                                }
-                            }
-                            else{
-                                System.out.println("Veuillez rentrer une date future.");
-                                check_2=0;
-                            }
-                        }
-                        else{
-                            System.out.println("Veuillez rentrer une date future.");
-                            check_2=0;
-                        }
-                        //System.out.println(check_2);
                     }
 
                     // create statement obj
@@ -810,13 +833,14 @@ public class Methodesbdd
         {
             Statement stmt= conn.createStatement();
             ResultSet rset = stmt.executeQuery("select * from consultp where Id_patient ="+id);
-            System.out.println("Prénom" +  "\t" +  "Nom" + "\t" + "Date consultation" + "\t" + "Type consultation");
+            System.out.println("Prénom" +  "\t" +  "Nom" + "\t\t\t" + "Date consultation" + "\t\t\t" + "Type consultation" + "\t" + "Prix Consultation");
             while(rset.next())
             {
-                System.out.print(rset.getString("Prenom_patient") + "\t");
-                System.out.print(rset.getString("Nom_patient") + "\t" + "\t");
-                System.out.print(rset.getString("Date_consultation")+ "\t" +  "\t");
-                System.out.println(rset.getString("Type_consultation") + "\t");
+                System.out.print(rset.getString(2) + "\t");
+                System.out.print(rset.getString(3) + "\t" + "\t");
+                System.out.print(rset.getString(4)+ "\t" +  "\t");
+                System.out.print(rset.getString(5) + "\t" + "\t"+ "\t");
+                System.out.print(rset.getString(6) + "\t");
             }
         }
         catch (SQLException ex)
@@ -943,7 +967,6 @@ public class Methodesbdd
                         }
                         else
                         {
-                            System.out.println("id user : " + id_user);
                             System.out.println("Entrez votre mot de passe : ");
                             motdepassetape = in.nextLine();
                             if (motdepassetape.equals(mdppatient))
