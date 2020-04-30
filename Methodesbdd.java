@@ -195,10 +195,14 @@ public class Methodesbdd
                         //System.out.println(formatter.format(date1));
                         Calendar c = Calendar.getInstance();
                         c.setTime(date1);
-                        c.add(Calendar.DATE, 1);
-                        date1 = c.getTime();
                         int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
-                        //System.out.println(dayOfWeek);
+                        c.add(Calendar.DATE, 1);
+                        int annee1=c.get(Calendar.YEAR);
+                        int mois1=c.get(Calendar.MONTH)+1;
+                        int jour1=c.get(Calendar.DAY_OF_MONTH);
+                        System.out.println(annee+" "+mois+" "+jour);
+                        System.out.println(annee1+" "+mois1+" "+jour1);
+                        System.out.println(dayOfWeek);
                         // closing the scanner stream
                         scan2.close();
                         //System.out.println(annee+mois+jour+h+m+type);
@@ -210,21 +214,20 @@ public class Methodesbdd
                             System.out.println("Les heures de RDV ne sont comprises qu'entre 8h et 20h.");
                             check_2=0;
                         }
-                        if(dayOfWeek!=7){
+                        if(dayOfWeek!=1){
                             check_2++;
                         }
                         else{
                             System.out.println("Les RDV ne sont pas possibles le dimanche.");
                             check_2=0;
                         }
-                        int day1 = (Integer.parseInt(jour))+1;
                         stmt = conn.createStatement( ResultSet.TYPE_SCROLL_INSENSITIVE,
                                 ResultSet.CONCUR_READ_ONLY);
-                        rset = stmt.executeQuery("SELECT * FROM Consultation WHERE Date_consultation='"+annee+"-"+mois+"-"+jour+"' AND Date_consultation<'"+annee+"-"+mois+"-"+day1+"'");
+                        rset = stmt.executeQuery("SELECT * FROM Consultation WHERE Date_consultation>=to_timestamp('"+annee+"-"+mois+"-"+jour+"','yyyy-mm-dd') AND Date_consultation<to_timestamp('"+annee1+"-"+mois1+"-"+jour1+"','yyyy-mm-dd')");
                         rset.last();
                         int count = rset.getRow();
                         rset.beforeFirst();
-                        //System.out.println(count);
+                        System.out.println(count);
                         if(count<20){
                             check_2++;
                         }
