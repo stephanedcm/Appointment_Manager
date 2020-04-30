@@ -311,7 +311,7 @@ public class Methodesbdd
                         //System.out.println("Patient "+nom+" ajouté à la consultation "+idConsultation);
                     }
                     int check_2=0;
-                    while(check_2!=5){
+                    while(check_2!=6){
                         check_2=0;
                         System.out.print("Veuillez rentrer la date de la consultation que vous voulez ajouter dans le format suivant jj/mm/yyyy/Ho/Mi: ");
                         Scanner scanner4 = new Scanner(System.in);
@@ -332,6 +332,9 @@ public class Methodesbdd
                         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
                         String dateInString = ""+jour+"-"+mois+"-"+annee+"";
                         Date date1 = formatter.parse(dateInString);
+                        SimpleDateFormat formatter1 = new SimpleDateFormat("dd-MM-yyyy HH:mm");
+                        String dateInString1 = ""+jour+"-"+mois+"-"+annee+" "+""+h+":"+m+"";
+                        Date date2 = formatter1.parse(dateInString1);
                         //System.out.println(date1);
                         //System.out.println(formatter.format(date1));
                         Calendar c = Calendar.getInstance();
@@ -346,13 +349,46 @@ public class Methodesbdd
                         int year = Integer.parseInt(annee);
                         int month = Integer.parseInt(mois);
                         int dayy = Integer.parseInt(jour);
+                        Calendar calendar1 = Calendar.getInstance();
+                        Calendar calendar2 = Calendar.getInstance();
+                        calendar1.setTime(date2);
+                        calendar2.setTime(date2);
+                        //System.out.println("Original = " + calendar1.getTime());
+                        //System.out.println("Original = " + calendar2.getTime());
+                        // Add 30 minutes to the calendar time
+                        calendar1.add(Calendar.MINUTE, 30);
+                        // Substract 2 hour from the current time
+                        calendar2.add(Calendar.MINUTE, -30);
+                        //System.out.println("Updated  = " + calendar1.getTime());
+                        //System.out.println("Updated  = " + calendar2.getTime());
+                        int hour_plus = calendar1.get(Calendar.HOUR_OF_DAY);     // gets the current month
+                        int minute_plus = calendar1.get(Calendar.MINUTE);
+                        int hour_minus = calendar2.get(Calendar.HOUR_OF_DAY);    // gets the current month
+                        int minute_minus = calendar2.get(Calendar.MINUTE);
+                        System.out.println(hour_minus+" "+minute_minus+" "+hour_plus+" "+minute_plus);
                         //System.out.println(annee+" "+mois+" "+jour);
                         //System.out.println(annee1+" "+mois1+" "+jour1);
                         //System.out.println(dayOfWeek);
                         // closing the scanner stream
                         scan2.close();
                         //System.out.println(annee+mois+jour+h+m+type);
-                        System.out.println(today_annee+" "+today_mois+" "+today_jour+" "+year+" "+month+" "+dayy);
+                        //System.out.println(today_annee+" "+today_mois+" "+today_jour+" "+year+" "+month+" "+dayy);
+                        stmt = conn.createStatement( ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                ResultSet.CONCUR_READ_ONLY);
+                        rset = stmt.executeQuery("SELECT * FROM Consultation WHERE Date_consultation>=to_timestamp('"+annee+"-"+mois+"-"+jour+" "+hour_minus+":"+minute_minus+"','yyyy-mm-dd hh24:MI') AND Date_consultation<to_timestamp('"+annee+"-"+mois+"-"+jour+" "+hour_plus+":"+minute_plus+"','yyyy-mm-dd hh24:MI')");
+                        rset.last();
+                        int count_rdv = rset.getRow();
+                        rset.beforeFirst();
+                        //System.out.println(hour_minus+" "+minute_minus+" "+hour_plus+" "+minute_plus);
+                        //System.out.println(count_rdv);
+                        if(count_rdv==0){
+                            check_2++;
+                        }
+                        else{
+                            System.out.println("Il y a déjà une consultation sur cette tranche horaire");
+                            check_2=0;
+                        }
+
                         if(today_annee<=year){
                             if(today_mois<=month){
                                 check_2++;
