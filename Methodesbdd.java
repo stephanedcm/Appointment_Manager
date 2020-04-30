@@ -4,7 +4,9 @@ import javax.xml.transform.Result;
 import java.io.File;
 import java.sql.*;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.IllegalFormatCodePointException;
 import java.util.Scanner;
 import java.util.Date;
@@ -193,6 +195,8 @@ public class Methodesbdd
                         //System.out.println(formatter.format(date1));
                         Calendar c = Calendar.getInstance();
                         c.setTime(date1);
+                        c.add(Calendar.DATE, 1);
+                        date1 = c.getTime();
                         int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
                         //System.out.println(dayOfWeek);
                         // closing the scanner stream

@@ -3,21 +3,22 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.ParseException;
 
 
 public class Connexion {
 
-    public static void main(String[] args) throws ClassNotFoundException, SQLException {
+    public static void main(String[] args) throws ClassNotFoundException, SQLException, ParseException {
         // create jdbc connection obj and load class
         Class.forName("oracle.jdbc.driver.OracleDriver");
         int user;
-        Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe", "sam", "sammp");
+        Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe", "steph", "admin");
         // create statement obj
         Statement stmt = conn.createStatement();
         Methodesbdd test = new Methodesbdd();
 
-        test.add_mot_cle(conn);
-        //test.rdv_psy(conn);
+        //test.add_mot_cle(conn);
+        test.rdv_psy(conn);
         //test.fin_rdv(conn);
         //user = test.login(conn);
 
