@@ -841,7 +841,7 @@ public class Methodesbdd
         String Mdp_patient;
         String Sexe_patient;
         String Date_naissance;
-        String Profession_actuelle;
+        String Profession_actuelle = "NULL";
         String Prospection;
 
         Scanner in = new Scanner(System.in);
@@ -858,12 +858,12 @@ public class Methodesbdd
             Sexe_patient = in.nextLine();
             System.out.println("Entrez la date de naissance du patient sous la forme suivante : yyyy-mm-dd ");
             Date_naissance = in.nextLine();
-            System.out.println("Entrez la profession actuelle du patient: ");
-            Profession_actuelle = in.nextLine();
             System.out.println("Entrez comment le patient vous a connu : ");
             Prospection = in.nextLine();
+            if (Prospection.equals(""))
+                Prospection = "NULL";
             Statement stmt = conn.createStatement();
-            String query1 = "insert into Patient (Id_patient, Prenom_patient, Nom_patient, Email, Mdp_patient, Sexe, Date_naissance, Profession_actuelle, Prospection)" + " VALUES (t1_seq.nextval, '" + Prenom_patient + "',  '" + Nom_patient + "', '" + Email_patient + "', '" + Mdp_patient + "', '" + Sexe_patient + "', to_date('" + Date_naissance + "', 'yyyy-mm-dd'), '" + Profession_actuelle + "', '" + Prospection + "')";
+            String query1 = "insert into Patient (Id_patient, Prenom_patient, Nom_patient, Email, Mdp_patient, Sexe, Date_naissance, Profession_id, Prospection)" + " VALUES (Patient_seq.nextval, '" + Prenom_patient + "',  '" + Nom_patient + "', '" + Email_patient + "', '" + Mdp_patient + "', '" + Sexe_patient + "', to_date('" + Date_naissance + "', 'yyyy-mm-dd'), '" + Profession_actuelle + "', '" + Prospection + "')";
             stmt.executeUpdate(query1);
         } catch (SQLException ex) {
 // Si une exception SQL survient, il affiche les messages d’erreurs du SGBD
@@ -874,6 +874,27 @@ public class Methodesbdd
                 System.out.println("Code de l'erreur: " + ex.getErrorCode());
                 ex = ex.getNextException();
             }
+        }
+    }
+
+    public void print_patient(Connection conn) throws SQLException {
+        Statement stmt = conn.createStatement();
+        ResultSet rset = stmt.executeQuery("select Id_patient, Sexe, Nom_patient, Prenom_patient, Mdp_patient, Email, Date_naissance, Prospection from Patient ");
+        System.out.println("N° Patient \t  Sexe \t \t Nom Patient \t \t Prenom Patient \t\t Patient mot de passe \t\t Email \t\t\t\t\t Date de naissance \t\t\t Prospection   ");
+        while(rset.next())
+        {
+            System.out.print(rset.getInt(1) + "\t" + "\t" + "\t");
+            System.out.print(rset.getString(2)+ "\t" + "\t" + "\t");
+            System.out.print(rset.getString(3)+ "\t" + "\t" + "\t" + "\t");
+            System.out.print(rset.getString(4)+ "\t" + "\t" + "\t" + "\t" + "\t" + "\t");
+            System.out.print(rset.getInt(5)+ "\t" + "\t" + "\t" + "\t" + "\t");
+            System.out.print(rset.getString(6)+ "\t" + "\t");
+            System.out.print(rset.getString(7)+ "\t" + "\t") ;
+            if (rset.getString(8).equals("NULL"))
+                System.out.print("X         ");
+            else
+                System.out.print(rset.getString(8)+ "\t");
+            System.out.println("\n");
         }
     }
 
