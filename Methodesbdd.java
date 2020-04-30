@@ -89,7 +89,7 @@ public class Methodesbdd
     }
 
 
-    public static void rdv_psy(Connection conn) throws SQLException {
+    public static void rdv_psy(Connection conn) throws SQLException, ParseException {
         String jour="";
         String mois="";
         String annee="";
@@ -115,7 +115,7 @@ public class Methodesbdd
                     if(cptNextVal==0){
                         idConsultation=1;
                     }
-                    System.out.println("Vous avez choisi d'ajouter une consultation");
+                    System.out.println("Vous avez choisi d'ajouter une consultation.");
                     System.out.print("Veuillez sélectionner le type de consultation, tapez 1 s'il s'agit d'une consultation individuelle, 2 en couple, 3 en famille: ");
                     int whichOne_2 = scanner.nextInt();
                     int nbPatient=0;
@@ -152,39 +152,84 @@ public class Methodesbdd
                     for(int i=1; i<nbPatient+1;i++){
                         int cpt_patient=0;
                         String nom="";
-                        System.out.println("Id" +  "\t" +  "Nom");
                         while(cpt_patient==0){
                             System.out.print("Veuillez rentrer le Nom du patient "+i+": ");
                             nom = scanner1.nextLine();
                             stmt= conn.createStatement();
                             rset = stmt.executeQuery("select Id_Patient,Nom_patient from Patient where Nom_patient ='"+nom+"'");
-                            while(rset.next())
-                            {
+                            if(rset.getRow()==0){
+                                System.out.println("Le nom du patient rentré est inconnu.");
+                            }
+                            while(rset.next()) {
+                                System.out.println("Id" + "\t" + "Nom");
                                 cpt_patient++;
                                 System.out.print(rset.getString("Id_Patient") + "\t");
                                 System.out.print(rset.getString("Nom_Patient") + "\t" + "\t");
                             }
                         }
-                        System.out.print("Veuillez rentrer l'id du patient voulu: ");
+                        System.out.print("\nVeuillez rentrer l'id du patient voulu: ");
                         int idPatient=scanner1.nextInt();
                         stmt= conn.createStatement();
-                        System.out.println("Consultation: "+idConsultation+"Patient: "+idPatient);
+                        //System.out.println("Consultation: "+idConsultation+" Patient: "+idPatient);
                         stmt.executeUpdate("INSERT INTO Patient_consultation VALUES ("+idPatient+", "+idConsultation+", NULL, NULL, NULL, NULL)");
                         System.out.println("Patient "+nom+" ajouté à la consultation "+idConsultation);
                     }
-                    System.out.print("Veuillez rentrer la date de la consultation que vous voulez ajouter dans le format suivant jj/mm/yyyy/Ho/Mi: ");
-                    Scanner scanner4 = new Scanner(System.in);
-                    String date = scanner4.nextLine();
-                    Scanner scan2 = new Scanner(date);
-                    scan2.useDelimiter("/");
-                    jour=scan2.next();
-                    mois=scan2.next();
-                    annee=scan2.next();
-                    h=scan2.next();
-                    m=scan2.next();
-                    // closing the scanner stream
-                    scan2.close();
-                    System.out.println(annee+mois+jour+h+m+type);
+                    int check_2=0;
+                    while(check_2!=3){
+                        System.out.print("Veuillez rentrer la date de la consultation que vous voulez ajouter dans le format suivant jj/mm/yyyy/Ho/Mi: ");
+                        Scanner scanner4 = new Scanner(System.in);
+                        String date = scanner4.nextLine();
+                        Scanner scan2 = new Scanner(date);
+                        scan2.useDelimiter("/");
+                        jour=scan2.next();
+                        mois=scan2.next();
+                        annee=scan2.next();
+                        h=scan2.next();
+                        m=scan2.next();
+                        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+                        String dateInString = ""+jour+"-"+mois+"-"+annee+"";
+                        Date date1 = formatter.parse(dateInString);
+                        //System.out.println(date1);
+                        //System.out.println(formatter.format(date1));
+                        Calendar c = Calendar.getInstance();
+                        c.setTime(date1);
+                        int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
+                        //System.out.println(dayOfWeek);
+                        // closing the scanner stream
+                        scan2.close();
+                        //System.out.println(annee+mois+jour+h+m+type);
+                        int hour = Integer.parseInt(h);
+                        if(hour>=8 && hour<=20){
+                            check_2++;
+                        }
+                        else{
+                            System.out.println("Les heures de RDV ne sont comprises qu'entre 8h et 20h.");
+                            check_2=0;
+                        }
+                        if(dayOfWeek!=7){
+                            check_2++;
+                        }
+                        else{
+                            System.out.println("Les RDV ne sont pas possibles le dimanche.");
+                            check_2=0;
+                        }
+                        int day1 = (Integer.parseInt(jour))+1;
+                        stmt = conn.createStatement( ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                ResultSet.CONCUR_READ_ONLY);
+                        rset = stmt.executeQuery("SELECT * FROM Consultation WHERE Date_consultation='"+annee+"-"+mois+"-"+jour+"' AND Date_consultation<'"+annee+"-"+mois+"-"+day1+"'");
+                        rset.last();
+                        int count = rset.getRow();
+                        rset.beforeFirst();
+                        //System.out.println(count);
+                        if(count<20){
+                            check_2++;
+                        }
+                        else{
+                            System.out.println("La psychologue ne peut travailler que 10 heures par jour.");
+                            check_2=0;
+                        }
+                    }
+
                     // create statement obj
                     stmt= conn.createStatement();
                     // execute query
@@ -215,7 +260,7 @@ public class Methodesbdd
 
                     System.out.println("Consultation ajoutée!");
                     break;
-                    
+
                 case 2:
                     stmt= conn.createStatement();
                     System.out.println("Vous avez choisi de modifier une consultation.");
@@ -241,7 +286,7 @@ public class Methodesbdd
                     int id_Consultation = scanner5.nextInt();
                     System.out.print("Veuillez rentrer la nouvelle date de la consultation dans le format suivant jj/mm/yyyy/Ho/Mi: ");
                     Scanner scanner3 = new Scanner(System.in);
-                    date = scanner3.nextLine();
+                    String date = scanner3.nextLine();
                     Scanner scan1 = new Scanner(date);
                     scan1.useDelimiter("/");
                     jour=scan1.next();
