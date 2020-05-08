@@ -1348,8 +1348,14 @@ public class Methodesbdd
         String Mdp_patient;
         String Sexe_patient;
         String Date_naissance;
-        String Profession_actuelle = "NULL";
+        String Profession_actuelle = "";
         String Prospection;
+        String ouinonprofessionanterieur;
+        String Profession_anterieur;
+        int nbprofession = 0;
+        int cptNextVal = 0;
+        int id_profession = 0;
+        int id_patient = 0;
 
         Scanner in = new Scanner(System.in);
         try {
@@ -1369,9 +1375,53 @@ public class Methodesbdd
             Prospection = in.nextLine();
             if (Prospection.equals(""))
                 Prospection = "NULL";
+            System.out.println("Entrez la profession actuelle du patient : ");
+            Profession_actuelle = in.nextLine();
+            if (Profession_actuelle.equals(""))
+                Profession_actuelle = "NULL";
             Statement stmt = conn.createStatement();
             String query1 = "insert into Patient (Id_patient, Prenom_patient, Nom_patient, Email, Mdp_patient, Sexe, Date_naissance, Profession_id, Prospection)" + " VALUES (Patient_seq.nextval, '" + Prenom_patient + "',  '" + Nom_patient + "', '" + Email_patient + "', '" + Mdp_patient + "', '" + Sexe_patient + "', to_date('" + Date_naissance + "', 'yyyy-mm-dd'), '" + Profession_actuelle + "', '" + Prospection + "')";
             stmt.executeUpdate(query1);
+            ResultSet rsett = stmt.executeQuery("select Id_patient from Patient where Nom_patient ="+"'" + Nom_patient +"'" + "and Prenom_patient ='"+ Prenom_patient+"'");
+            while (rsett.next())
+            {
+                id_patient= rsett.getInt(1);
+            }
+            System.out.println("Le patient a-t-il des profession antérieures ? Entrez O pour oui N pour non");
+            ouinonprofessionanterieur = in.nextLine();
+            if (ouinonprofessionanterieur.equals("O"));
+            {
+                System.out.println("Entrez le nombre de profession que vous souhaitez ajouter au patient " + Nom_patient + " " + Prenom_patient +" : ");
+                nbprofession = in.nextInt();
+                for (int i=0; i<nbprofession; i++)
+                {
+                    System.out.println("Entrez les professions une à une : ");
+                    Profession_anterieur = in.next();
+                    ResultSet rset = stmt.executeQuery("select Profession_seq.nextval from Profession where Id_profession=1");
+                    while(rset.next()) {
+                        cptNextVal++;
+                        id_profession = (rset.getInt(1)+1);
+                    }
+                    if(cptNextVal==0){
+                        id_profession=1;
+                    }
+                    stmt.executeUpdate("INSERT INTO Profession VALUES ("+id_profession+", '"+Profession_anterieur+"')");
+                    System.out.println("Id profession : " + id_profession);
+                    stmt.executeUpdate("INSERT INTO Patient_profession_anterieure VALUES ("+id_patient + ", "+id_profession + ")");
+                }
+            }
+            ResultSet rset = stmt.executeQuery("select Patient_profession_anterieure.Id_patient, Prenom_patient, Nom_patient, Patient_profession_anterieure.Id_profession, Nom_profession from Profession join Patient_profession_anterieure on Patient_profession_anterieure.Id_profession = Profession.Id_profession join Patient on Patient.Id_patient = Patient_profession_anterieure.Id_patient where Patient.Id_patient ="+id_patient);
+            System.out.println("N° Patient  Prénom patient    nom patient       Profession id     nom profession    ");
+            while (rset.next())
+            {
+                System.out.print(rset.getInt(1) + "\t");
+                System.out.print(rset.getString(2) + "\t");
+                System.out.print(rset.getString(3) + "\t");
+                System.out.print(rset.getInt(4)+ "\t");
+                System.out.print(rset.getString(5) + "\t");
+                System.out.println("\n");
+            }
+
         } catch (SQLException ex) {
 // Si une exception SQL survient, il affiche les messages d’erreurs du SGBD
             System.out.println("\n*** ERREUR SQL ***\n");
@@ -1380,27 +1430,34 @@ public class Methodesbdd
                 System.out.println("Message: " + ex.getMessage());
                 System.out.println("Code de l'erreur: " + ex.getErrorCode());
                 ex = ex.getNextException();
+
             }
+
         }
+
     }
 
     public void print_patient(Connection conn) throws SQLException {
         Statement stmt = conn.createStatement();
-        ResultSet rset = stmt.executeQuery("select Id_patient, Sexe, Nom_patient, Prenom_patient, Mdp_patient, Email, Date_naissance, Prospection from Patient ");
-        System.out.println("N° Patient \t  Sexe \t \t Nom Patient \t \t Prenom Patient \t\t Patient mot de passe \t\t Email \t\t\t\t\t Date de naissance \t\t\t Prospection   ");
+        ResultSet rset = stmt.executeQuery("select Id_patient, Sexe, Nom_patient, Prenom_patient, Mdp_patient, Email, Date_naissance, Prospection, Profession_id from Patient ");
+        System.out.println("N° Patient \t  Sexe \t \t Nom Patient \t \t Prenom Patient \t\t Patient mot de passe \t\t Email \t\t\t\t\t Date de naissance \t\t\t Prospection \t\t\t Profession  ");
         while(rset.next())
         {
             System.out.print(rset.getInt(1) + "\t" + "\t" + "\t");
             System.out.print(rset.getString(2)+ "\t" + "\t" + "\t");
             System.out.print(rset.getString(3)+ "\t" + "\t" + "\t" + "\t");
             System.out.print(rset.getString(4)+ "\t" + "\t" + "\t" + "\t" + "\t" + "\t");
-            System.out.print(rset.getInt(5)+ "\t" + "\t" + "\t" + "\t" + "\t");
+            System.out.print(rset.getString(5)+ "\t" + "\t" + "\t" + "\t" + "\t");
             System.out.print(rset.getString(6)+ "\t" + "\t");
             System.out.print(rset.getString(7)+ "\t" + "\t") ;
-            if (rset.getString(8).equals("NULL"))
+            if (rset.getObject(8) == null)
                 System.out.print("X         ");
             else
-                System.out.print(rset.getString(8)+ "\t");
+                System.out.print(rset.getString(8)+ "\t" + "\t");
+            if (rset.getObject(9) == null)
+                System.out.print("X         ");
+            else
+                System.out.print(rset.getString(9)+ "\t" + "\t");
             System.out.println("\n");
         }
     }
