@@ -224,6 +224,158 @@ public class Methodesbdd
         }
     }
 
+    public void display_rdv(Connection conn) throws SQLException, ParseException {
+        String jour="";
+        String mois="";
+        String annee="";
+        int annee1=0;
+        int num=0;
+        boolean check=true;
+        System.out.println("Vous avez choisi d'afficher les consultations enregistrées.");
+        while(check==true){
+            System.out.print("Pour afficher les consultations d'une journée précise, tapez 1, pour afficher les consultations d'une semaine précise, tapez 2: ");
+            Scanner scanner = new Scanner(System.in);  // Create a Scanner object
+            int whichOne_1 = scanner.nextInt();
+            switch(whichOne_1){
+                case 1:
+                    System.out.print("Veuillez entrer la date du jour voulu dont vous voulez afficher les consultations avec le format dd/mm/aaaa: ");
+                    Scanner scanner4 = new Scanner(System.in);
+                    String date = scanner4.nextLine();
+                    Scanner scan2 = new Scanner(date);
+                    scan2.useDelimiter("/");
+                    jour=scan2.next();
+                    mois=scan2.next();
+                    annee=scan2.next();
+                    SimpleDateFormat formatter1 = new SimpleDateFormat("dd-MM-yyyy");
+                    String dateInString1 = ""+jour+"-"+mois+"-"+annee+"";
+                    Date date3 = formatter1.parse(dateInString1);
+                    Calendar cal1 = Calendar.getInstance();
+                    cal1.setTime(date3);
+                    cal1.add(Calendar.DATE, 1);
+                    int annee_1=cal1.get(Calendar.YEAR);
+                    int mois_1=cal1.get(Calendar.MONTH)+1;
+                    int jour_1=cal1.get(Calendar.DAY_OF_MONTH);
+
+                    Statement stmt = conn.createStatement( ResultSet.TYPE_SCROLL_INSENSITIVE,
+                            ResultSet.CONCUR_READ_ONLY);
+                    ResultSet rset = stmt.executeQuery("SELECT * FROM Consultation WHERE Date_consultation>=to_timestamp('"+annee+"-"+mois+"-"+jour+"','yyyy-mm-dd') AND Date_consultation<to_timestamp('"+annee_1+"-"+mois_1+"-"+jour_1+"','yyyy-mm-dd')");
+                    rset.last();
+                    int count_rdv = rset.getRow();
+                    rset.beforeFirst();
+                    if(count_rdv==0){
+                        System.out.println("Aucune consultation enregistrée ce jour-ci.");
+                    }
+                    else{
+                        stmt= conn.createStatement();
+                        rset = stmt.executeQuery("select Patient.Id_patient, Prenom_patient, Nom_patient, Patient_consultation.Id_consultation, Date_consultation, Patient_consultation.Type_reglement, Patient_consultation.Retard, Patient_consultation.Indicateur_anxiete from Patient join Patient_consultation on Patient.Id_patient = Patient_consultation.Id_patient join Consultation on Patient_consultation.Id_consultation = Consultation.Id_consultation WHERE Date_consultation>=to_timestamp('"+annee+"-"+mois+"-"+jour+"','yyyy-mm-dd') AND Date_consultation<to_timestamp('"+annee_1+"-"+mois_1+"-"+jour_1+"','yyyy-mm-dd') and (Type_reglement is null or Retard is null)");
+                        System.out.println("Liste des consultations passées et non traitées :");
+                        System.out.println("N° Consultation" +  "\t" +  "Date consultation" + "\t" + "\t" + "Prénom patient" + "\t" + "Nom patient" + "\t" +  "Indicateur anxiete" + "\t" + "Type de reglement" + "\t" + "Retard");
+                        while(rset.next())
+                        {
+                            System.out.println("");
+                            System.out.print(rset.getString("Id_consultation") + "\t" + "\t" + "\t" + "\t" );
+                            System.out.print(rset.getString("Date_consultation") + "\t");
+                            System.out.print(rset.getString("Prenom_patient") + "\t" + "\t");
+                            System.out.print(rset.getString("Nom_patient") + "\t" + "\t" + "\t");
+                            if(rset.getObject("Indicateur_anxiete") == null)
+                                System.out.print("X                   ");
+                            else
+                                System.out.print(rset.getString("Indicateur anxiete                   ")+ "\t");
+
+                            if(rset.getObject("Type_reglement") == null)
+                                System.out.print("X                    ");
+                            else
+                                System.out.print(rset.getString("Type_reglement                 ")+ "\t");
+
+                            if(rset.getObject("Retard") == null)
+                                System.out.print("X                    ");
+                            else
+                                System.out.print(rset.getString("Retard                       ")+ "\t");
+
+                            System.out.println();
+
+                        }
+                    }
+                    check=false;
+                    break;
+                case 2:
+                    System.out.print("Veuillez entrer le numéro de la semaine dont laquelle vous voulez afficher les consultations ainsi que l'année correspondante sous le format ss/aaaa: ");
+                    Scanner scanner1 = new Scanner(System.in);
+                    String date1 = scanner1.nextLine();
+                    Scanner scan1 = new Scanner(date1);
+                    scan1.useDelimiter("/");
+                    num=scan1.nextInt();
+                    annee1=scan1.nextInt();
+                    SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+                    String dateInString = ""+"01"+"-"+"01"+"-"+annee1+"";
+                    Date date2 = formatter.parse(dateInString);
+                    Calendar cal = Calendar.getInstance();
+                    cal.setTime(date2);
+                    cal.set(Calendar.WEEK_OF_YEAR, num);
+                    cal.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+                    int annee_monday=cal.get(Calendar.YEAR);
+                    int mois_monday=cal.get(Calendar.MONTH)+1;
+                    int jour_monday=cal.get(Calendar.DAY_OF_MONTH);
+                    //System.out.println(formatter.format(cal.getTime()));
+                    //System.out.println(annee_monday+" "+ mois_monday+" "+jour_monday);
+                    cal.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
+                    int annee_saturday=cal.get(Calendar.YEAR);
+                    int mois_saturday=cal.get(Calendar.MONTH)+1;
+                    int jour_saturday=cal.get(Calendar.DAY_OF_MONTH);
+                    //System.out.println(formatter.format(cal.getTime()));
+                    //System.out.println(annee_saturday+" "+mois_saturday+" "+jour_saturday);
+                    stmt = conn.createStatement( ResultSet.TYPE_SCROLL_INSENSITIVE,
+                            ResultSet.CONCUR_READ_ONLY);
+                    rset = stmt.executeQuery("SELECT * FROM Consultation WHERE Date_consultation>=to_timestamp('"+annee_monday+"-"+mois_monday+"-"+jour_monday+"','yyyy-mm-dd') AND Date_consultation<=to_timestamp('"+annee_saturday+"-"+mois_saturday+"-"+jour_saturday+"','yyyy-mm-dd')");
+                    rset.last();
+                    int count_rdv1 = rset.getRow();
+                    rset.beforeFirst();
+                    if(count_rdv1==0){
+                        System.out.println("Aucune consultation enregistrée à cette semaine.");
+                    }
+                    else{
+                        stmt= conn.createStatement();
+                        rset = stmt.executeQuery("select Patient.Id_patient, Prenom_patient, Nom_patient, Patient_consultation.Id_consultation, Date_consultation, Patient_consultation.Type_reglement, Patient_consultation.Retard, Patient_consultation.Indicateur_anxiete from Patient join Patient_consultation on Patient.Id_patient = Patient_consultation.Id_patient join Consultation on Patient_consultation.Id_consultation = Consultation.Id_consultation WHERE Date_consultation>=to_timestamp('"+annee_monday+"-"+mois_monday+"-"+jour_monday+"','yyyy-mm-dd') AND Date_consultation<to_timestamp('"+annee_saturday+"-"+mois_saturday+"-"+jour_saturday+"','yyyy-mm-dd')");
+                        System.out.println("Liste des consultations passées et non traitées :");
+                        System.out.println("N° Consultation" +  "\t" +  "Date consultation" + "\t" + "\t" + "Prénom patient" + "\t" + "Nom patient" + "\t" +  "Indicateur anxiete" + "\t" + "Type de reglement" + "\t" + "Retard");
+                        while(rset.next())
+                        {
+                            System.out.println("");
+                            System.out.print(rset.getString("Id_consultation") + "\t" + "\t" + "\t" + "\t" );
+                            System.out.print(rset.getString("Date_consultation") + "\t");
+                            System.out.print(rset.getString("Prenom_patient") + "\t" + "\t");
+                            System.out.print(rset.getString("Nom_patient") + "\t" + "\t" + "\t");
+                            if(rset.getObject("Indicateur_anxiete") == null)
+                                System.out.print("X                   ");
+                            else
+                                System.out.print(rset.getString("Indicateur anxiete                   ")+ "\t");
+
+                            if(rset.getObject("Type_reglement") == null)
+                                System.out.print("X                    ");
+                            else
+                                System.out.print(rset.getString("Type_reglement                 ")+ "\t");
+
+                            if(rset.getObject("Retard") == null)
+                                System.out.print("X                    ");
+                            else
+                                System.out.print(rset.getString("Retard                       ")+ "\t");
+
+                            System.out.println();
+
+                        }
+                    }
+                    check=false;
+                    break;
+                default:
+                    System.out.println("Veuillez choisir une option valide");
+                    break;
+
+            }
+        }
+
+
+
+    }
 
     public static void rdv_psy(Connection conn) throws SQLException, ParseException {
         String jour="";
@@ -305,15 +457,15 @@ public class Methodesbdd
                         }
                         System.out.print("\nVeuillez rentrer l'id du patient voulu: ");
                         int idPatient=scanner1.nextInt();
-                        //stmt= conn.createStatement();
-                        //System.out.println("Consultation: "+idConsultation+" Patient: "+idPatient);
-                        //stmt.executeUpdate("INSERT INTO Patient_consultation VALUES ("+idPatient+", "+idConsultation+", NULL, NULL, NULL, NULL)");
+                        stmt= conn.createStatement();
+                        System.out.println("Consultation: "+idConsultation+" Patient: "+idPatient);
+                        stmt.executeUpdate("INSERT INTO Patient_consultation VALUES ("+idPatient+", "+idConsultation+", NULL, NULL, NULL, NULL)");
                         //System.out.println("Patient "+nom+" ajouté à la consultation "+idConsultation);
                     }
                     int check_2=0;
                     while(check_2!=6){
                         check_2=0;
-                        System.out.print("Veuillez rentrer la date de la consultation que vous voulez ajouter dans le format suivant jj/mm/yyyy/Ho/Mi: ");
+                        System.out.print("Veuillez rentrer la nouvelle date de la consultation dans le format suivant jj/mm/yyyy/Ho/Mi: ");
                         Scanner scanner4 = new Scanner(System.in);
                         String date = scanner4.nextLine();
                         Scanner scan2 = new Scanner(date);
@@ -329,6 +481,8 @@ public class Methodesbdd
                         int today_annee=today_calendar.get(Calendar.YEAR);
                         int today_mois=today_calendar.get(Calendar.MONTH)+1;
                         int today_jour=today_calendar.get(Calendar.DAY_OF_MONTH);
+                        int today_hour=today_calendar.get(Calendar.HOUR_OF_DAY);
+                        int today_minute=today_calendar.get(Calendar.MINUTE);
                         SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
                         String dateInString = ""+jour+"-"+mois+"-"+annee+"";
                         Date date1 = formatter.parse(dateInString);
@@ -365,7 +519,7 @@ public class Methodesbdd
                         int minute_plus = calendar1.get(Calendar.MINUTE);
                         int hour_minus = calendar2.get(Calendar.HOUR_OF_DAY);    // gets the current month
                         int minute_minus = calendar2.get(Calendar.MINUTE);
-                        System.out.println(hour_minus+" "+minute_minus+" "+hour_plus+" "+minute_plus);
+                        //System.out.println(hour_minus+" "+minute_minus+" "+hour_plus+" "+minute_plus);
                         //System.out.println(annee+" "+mois+" "+jour);
                         //System.out.println(annee1+" "+mois1+" "+jour1);
                         //System.out.println(dayOfWeek);
@@ -375,7 +529,7 @@ public class Methodesbdd
                         //System.out.println(today_annee+" "+today_mois+" "+today_jour+" "+year+" "+month+" "+dayy);
                         stmt = conn.createStatement( ResultSet.TYPE_SCROLL_INSENSITIVE,
                                 ResultSet.CONCUR_READ_ONLY);
-                        rset = stmt.executeQuery("SELECT * FROM Consultation WHERE Date_consultation>=to_timestamp('"+annee+"-"+mois+"-"+jour+" "+hour_minus+":"+minute_minus+"','yyyy-mm-dd hh24:MI') AND Date_consultation<to_timestamp('"+annee+"-"+mois+"-"+jour+" "+hour_plus+":"+minute_plus+"','yyyy-mm-dd hh24:MI')");
+                        rset = stmt.executeQuery("SELECT * FROM Consultation WHERE Date_consultation>to_timestamp('"+annee+"-"+mois+"-"+jour+" "+hour_minus+":"+minute_minus+"','yyyy-mm-dd hh24:MI') AND Date_consultation<to_timestamp('"+annee+"-"+mois+"-"+jour+" "+hour_plus+":"+minute_plus+"','yyyy-mm-dd hh24:MI')");
                         rset.last();
                         int count_rdv = rset.getRow();
                         rset.beforeFirst();
@@ -390,8 +544,35 @@ public class Methodesbdd
                         }
 
                         if(today_annee<=year){
-                            if(today_mois<=month){
+                            if(today_mois<month){
                                 check_2++;
+                            }
+                            else if(today_mois==month){
+                                if(today_jour<dayy){
+                                    check_2++;
+                                }
+                                else if(today_jour==dayy){
+                                    if(today_hour<hour){
+                                        check_2++;
+                                    }
+                                    else if(today_hour==hour){
+                                        if(today_minute<minute){
+                                            check_2++;
+                                        }
+                                        else{
+                                            System.out.println("Veuillez rentrer une heure future.");
+                                            check_2=0;
+                                        }
+                                    }
+                                    else{
+                                        System.out.println("Veuillez rentrer une heure future.");
+                                        check_2=0;
+                                    }
+                                }
+                                else{
+                                    System.out.println("Veuillez rentrer une date future.");
+                                    check_2=0;
+                                }
                             }
                             else{
                                 System.out.println("Veuillez rentrer une date future.");
@@ -432,7 +613,7 @@ public class Methodesbdd
                         //System.out.println(count);
                         if(count<20){
                             check_2++;
-                            System.out.println(check_2);
+                            //System.out.println(check_3);
                         }
                         else{
                             System.out.println("La psychologue ne peut travailler que 10 heures par jour.");
@@ -446,7 +627,7 @@ public class Methodesbdd
                     stmt= conn.createStatement();
                     // execute query
                     stmt.executeUpdate("INSERT INTO Consultation VALUES ("+idConsultation+",to_timestamp('"+annee+"-"+mois+"-"+jour+" "+h+":"+m+"','yyyy-mm-dd hh24:MI'),'"+type+"',"+prix+")");
-                    rset = stmt.executeQuery("select * from Consultation");
+                    /*rset = stmt.executeQuery("select * from Consultation");
                     System.out.println("Id_Consultation" +  "\t" +  "Date" + "\t" + "Type" + "\t" + "Prix_consultation");
                     while(rset.next())
                     {
@@ -468,7 +649,7 @@ public class Methodesbdd
                         System.out.print(rset.getString("Type_Patient") + "\t" + "\t");
                         System.out.print(rset.getString("Retard") + "\t" + "\t");
                         System.out.println("\n");
-                    }
+                    }*/
 
                     System.out.println("Consultation ajoutée!");
                     break;
@@ -493,21 +674,169 @@ public class Methodesbdd
                             System.out.println();
                         }
                     }
-                    System.out.print("Entrez l'ID de la consultation dont vous souhaitez modifier l'heure: ");
+                    System.out.print("Entrez l'ID de la consultation dont vous souhaitez modifier la date: ");
                     Scanner scanner5 = new Scanner(System.in);
                     int id_Consultation = scanner5.nextInt();
-                    System.out.print("Veuillez rentrer la nouvelle date de la consultation dans le format suivant jj/mm/yyyy/Ho/Mi: ");
-                    Scanner scanner3 = new Scanner(System.in);
-                    String date = scanner3.nextLine();
-                    Scanner scan1 = new Scanner(date);
-                    scan1.useDelimiter("/");
-                    jour=scan1.next();
-                    mois=scan1.next();
-                    annee=scan1.next();
-                    h=scan1.next();
-                    m=scan1.next();
-                    // closing the scanner stream
-                    scan1.close();
+                    int check_3=0;
+                    while(check_3!=6){
+                        check_3=0;
+                        System.out.print("Veuillez rentrer la nouvelle date de la consultation dans le format suivant jj/mm/yyyy/Ho/Mi: ");
+                        Scanner scanner4 = new Scanner(System.in);
+                        String date = scanner4.nextLine();
+                        Scanner scan2 = new Scanner(date);
+                        scan2.useDelimiter("/");
+                        jour=scan2.next();
+                        mois=scan2.next();
+                        annee=scan2.next();
+                        h=scan2.next();
+                        m=scan2.next();
+                        Date today = Calendar.getInstance().getTime();
+                        Calendar today_calendar = Calendar.getInstance();
+                        today_calendar.setTime(today);
+                        int today_annee=today_calendar.get(Calendar.YEAR);
+                        int today_mois=today_calendar.get(Calendar.MONTH)+1;
+                        int today_jour=today_calendar.get(Calendar.DAY_OF_MONTH);
+                        int today_hour=today_calendar.get(Calendar.HOUR_OF_DAY);
+                        int today_minute=today_calendar.get(Calendar.MINUTE);
+                        SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+                        String dateInString = ""+jour+"-"+mois+"-"+annee+"";
+                        Date date1 = formatter.parse(dateInString);
+                        SimpleDateFormat formatter1 = new SimpleDateFormat("dd-MM-yyyy HH:mm");
+                        String dateInString1 = ""+jour+"-"+mois+"-"+annee+" "+""+h+":"+m+"";
+                        Date date2 = formatter1.parse(dateInString1);
+                        //System.out.println(date1);
+                        //System.out.println(formatter.format(date1));
+                        Calendar c = Calendar.getInstance();
+                        c.setTime(date1);
+                        int dayOfWeek = c.get(Calendar.DAY_OF_WEEK);
+                        c.add(Calendar.DATE, 1);
+                        int annee1=c.get(Calendar.YEAR);
+                        int mois1=c.get(Calendar.MONTH)+1;
+                        int jour1=c.get(Calendar.DAY_OF_MONTH);
+                        int hour = Integer.parseInt(h);
+                        int minute = Integer.parseInt(m);
+                        int year = Integer.parseInt(annee);
+                        int month = Integer.parseInt(mois);
+                        int dayy = Integer.parseInt(jour);
+                        Calendar calendar1 = Calendar.getInstance();
+                        Calendar calendar2 = Calendar.getInstance();
+                        calendar1.setTime(date2);
+                        calendar2.setTime(date2);
+                        //System.out.println("Original = " + calendar1.getTime());
+                        //System.out.println("Original = " + calendar2.getTime());
+                        // Add 30 minutes to the calendar time
+                        calendar1.add(Calendar.MINUTE, 30);
+                        // Substract 2 hour from the current time
+                        calendar2.add(Calendar.MINUTE, -30);
+                        //System.out.println("Updated  = " + calendar1.getTime());
+                        //System.out.println("Updated  = " + calendar2.getTime());
+                        int hour_plus = calendar1.get(Calendar.HOUR_OF_DAY);     // gets the current month
+                        int minute_plus = calendar1.get(Calendar.MINUTE);
+                        int hour_minus = calendar2.get(Calendar.HOUR_OF_DAY);    // gets the current month
+                        int minute_minus = calendar2.get(Calendar.MINUTE);
+                        //System.out.println(hour_minus+" "+minute_minus+" "+hour_plus+" "+minute_plus);
+                        //System.out.println(annee+" "+mois+" "+jour);
+                        //System.out.println(annee1+" "+mois1+" "+jour1);
+                        //System.out.println(dayOfWeek);
+                        // closing the scanner stream
+                        scan2.close();
+                        //System.out.println(annee+mois+jour+h+m+type);
+                        //System.out.println(today_annee+" "+today_mois+" "+today_jour+" "+year+" "+month+" "+dayy);
+                        stmt = conn.createStatement( ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                ResultSet.CONCUR_READ_ONLY);
+                        rset = stmt.executeQuery("SELECT * FROM Consultation WHERE Date_consultation>to_timestamp('"+annee+"-"+mois+"-"+jour+" "+hour_minus+":"+minute_minus+"','yyyy-mm-dd hh24:MI') AND Date_consultation<to_timestamp('"+annee+"-"+mois+"-"+jour+" "+hour_plus+":"+minute_plus+"','yyyy-mm-dd hh24:MI')");
+                        rset.last();
+                        int count_rdv = rset.getRow();
+                        rset.beforeFirst();
+                        //System.out.println(hour_minus+" "+minute_minus+" "+hour_plus+" "+minute_plus);
+                        //System.out.println(count_rdv);
+                        if(count_rdv==0){
+                            check_3++;
+                        }
+                        else{
+                            System.out.println("Il y a déjà une consultation sur cette tranche horaire");
+                            check_3=0;
+                        }
+
+                        if(today_annee<=year){
+                            if(today_mois<month){
+                                check_3++;
+                            }
+                            else if(today_mois==month){
+                                if(today_jour<dayy){
+                                    check_3++;
+                                }
+                                else if(today_jour==dayy){
+                                    if(today_hour<hour){
+                                        check_3++;
+                                    }
+                                    else if(today_hour==hour){
+                                        if(today_minute<minute){
+                                            check_3++;
+                                        }
+                                        else{
+                                            System.out.println("Veuillez rentrer une heure future.");
+                                            check_3=0;
+                                        }
+                                    }
+                                    else{
+                                        System.out.println("Veuillez rentrer une heure future.");
+                                        check_3=0;
+                                    }
+                                }
+                                else{
+                                    System.out.println("Veuillez rentrer une date future.");
+                                    check_3=0;
+                                }
+                            }
+                            else{
+                                System.out.println("Veuillez rentrer une date future.");
+                                check_3=0;
+                            }
+                        }
+                        else{
+                            System.out.println("Veuillez rentrer une date future.");
+                            check_3=0;
+                        }
+                        if(minute>=0 && minute<60){
+                            check_3++;
+                        }
+                        else{
+                            System.out.println("Veuillez rentrer une heure valide.");
+                            check_3=0;
+                        }
+                        if(hour>=8 && hour<=20){
+                            check_3++;
+                        }
+                        else{
+                            System.out.println("Les heures de RDV ne sont comprises qu'entre 8h et 20h.");
+                            check_3=0;
+                        }
+                        if(dayOfWeek!=1){
+                            check_3++;
+                        }
+                        else{
+                            System.out.println("Les RDV ne sont pas possibles le dimanche.");
+                            check_3=0;
+                        }
+                        stmt = conn.createStatement( ResultSet.TYPE_SCROLL_INSENSITIVE,
+                                ResultSet.CONCUR_READ_ONLY);
+                        rset = stmt.executeQuery("SELECT * FROM Consultation WHERE Date_consultation>=to_timestamp('"+annee+"-"+mois+"-"+jour+"','yyyy-mm-dd') AND Date_consultation<to_timestamp('"+annee1+"-"+mois1+"-"+jour1+"','yyyy-mm-dd')");
+                        rset.last();
+                        int count = rset.getRow();
+                        rset.beforeFirst();
+                        //System.out.println(count);
+                        if(count<20){
+                            check_3++;
+                            //System.out.println(check_3);
+                        }
+                        else{
+                            System.out.println("La psychologue ne peut travailler que 10 heures par jour.");
+                            check_3=0;
+                        }
+
+                        //System.out.println(check_2);
+                    }
                     stmt.executeUpdate("UPDATE Consultation SET Date_Consultation = to_timestamp('"+annee+"-"+mois+"-"+jour+" "+h+":"+m+"','yyyy-mm-dd hh24:MI') WHERE Id_Consultation="+id_Consultation);
                     System.out.println("Informations relatives à la date de la consultation mises à jour!");
                     break;
@@ -563,12 +892,22 @@ public class Methodesbdd
 
     }
 
-    public static void fin_rdv(Connection conn) throws SQLException{
+    public static int fin_rdv(Connection conn) throws SQLException{
         DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Date date = new Date();
-        Statement stmt= conn.createStatement();
-        ResultSet rset = stmt.executeQuery("select Patient.Id_patient, Prenom_patient, Nom_patient, Patient_consultation.Id_consultation, Date_consultation, Patient_consultation.Type_reglement, Patient_consultation.Retard, Patient_consultation.Indicateur_anxiete from Patient join Patient_consultation on Patient.Id_patient = Patient_consultation.Id_patient join Consultation on Patient_consultation.Id_consultation = Consultation.Id_consultation where Date_consultation<=to_timestamp('"+dateFormat.format(date)+"','yyyy-mm-dd hh24:MI') and (Type_reglement is null or Retard is null)");
         System.out.println("Vous avez fini un RDV.");
+        Statement stmt = conn.createStatement( ResultSet.TYPE_SCROLL_INSENSITIVE,
+                ResultSet.CONCUR_READ_ONLY);
+        ResultSet rset = stmt.executeQuery("select Patient.Id_patient, Prenom_patient, Nom_patient, Patient_consultation.Id_consultation, Date_consultation, Patient_consultation.Type_reglement, Patient_consultation.Retard, Patient_consultation.Indicateur_anxiete from Patient join Patient_consultation on Patient.Id_patient = Patient_consultation.Id_patient join Consultation on Patient_consultation.Id_consultation = Consultation.Id_consultation where Date_consultation<=to_timestamp('"+dateFormat.format(date)+"','yyyy-mm-dd hh24:MI') and (Type_reglement is null or Retard is null)");
+        rset.last();
+        int count_rdv = rset.getRow();
+        rset.beforeFirst();
+        if(count_rdv==0){
+            System.out.println("Aucune consultation à traiter");
+            return 0;
+        }
+        stmt= conn.createStatement();
+        rset = stmt.executeQuery("select Patient.Id_patient, Prenom_patient, Nom_patient, Patient_consultation.Id_consultation, Date_consultation, Patient_consultation.Type_reglement, Patient_consultation.Retard, Patient_consultation.Indicateur_anxiete from Patient join Patient_consultation on Patient.Id_patient = Patient_consultation.Id_patient join Consultation on Patient_consultation.Id_consultation = Consultation.Id_consultation where Date_consultation<=to_timestamp('"+dateFormat.format(date)+"','yyyy-mm-dd hh24:MI') and (Type_reglement is null or Retard is null)");
         System.out.println("Liste des consultations passées et non traitées :");
         System.out.println("N° Consultation" +  "\t" +  "Date consultation" + "\t" + "\t" + "Prénom patient" + "\t" + "Nom patient" + "\t" +  "Indicateur anxiete" + "\t" + "Type de reglement" + "\t" + "Retard");
         while(rset.next())
@@ -965,6 +1304,7 @@ public class Methodesbdd
 
                 break;
         }
+        return 0;
 
     }
 
@@ -1008,14 +1348,8 @@ public class Methodesbdd
         String Mdp_patient;
         String Sexe_patient;
         String Date_naissance;
-        String Profession_actuelle = "";
+        String Profession_actuelle = "NULL";
         String Prospection;
-        String ouinonprofessionanterieur;
-        String Profession_anterieur;
-        int nbprofession = 0;
-        int cptNextVal = 0;
-        int id_profession = 0;
-        int id_patient = 0;
 
         Scanner in = new Scanner(System.in);
         try {
@@ -1035,53 +1369,9 @@ public class Methodesbdd
             Prospection = in.nextLine();
             if (Prospection.equals(""))
                 Prospection = "NULL";
-            System.out.println("Entrez la profession actuelle du patient : ");
-            Profession_actuelle = in.nextLine();
-            if (Profession_actuelle.equals(""))
-                Profession_actuelle = "NULL";
             Statement stmt = conn.createStatement();
             String query1 = "insert into Patient (Id_patient, Prenom_patient, Nom_patient, Email, Mdp_patient, Sexe, Date_naissance, Profession_id, Prospection)" + " VALUES (Patient_seq.nextval, '" + Prenom_patient + "',  '" + Nom_patient + "', '" + Email_patient + "', '" + Mdp_patient + "', '" + Sexe_patient + "', to_date('" + Date_naissance + "', 'yyyy-mm-dd'), '" + Profession_actuelle + "', '" + Prospection + "')";
             stmt.executeUpdate(query1);
-            ResultSet rsett = stmt.executeQuery("select Id_patient from Patient where Nom_patient ="+"'" + Nom_patient +"'" + "and Prenom_patient ='"+ Prenom_patient+"'");
-            while (rsett.next())
-            {
-                id_patient= rsett.getInt(1);
-            }
-            System.out.println("Le patient a-t-il des profession antérieures ? Entrez O pour oui N pour non");
-            ouinonprofessionanterieur = in.nextLine();
-            if (ouinonprofessionanterieur.equals("O"));
-            {
-                System.out.println("Entrez le nombre de profession que vous souhaitez ajouter au patient " + Nom_patient + " " + Prenom_patient +" : ");
-                nbprofession = in.nextInt();
-                for (int i=0; i<nbprofession; i++)
-                {
-                    System.out.println("Entrez les professions une à une : ");
-                    Profession_anterieur = in.next();
-                    ResultSet rset = stmt.executeQuery("select Profession_seq.nextval from Profession where Id_profession=1");
-                    while(rset.next()) {
-                        cptNextVal++;
-                        id_profession = (rset.getInt(1)+1);
-                    }
-                    if(cptNextVal==0){
-                        id_profession=1;
-                    }
-                    stmt.executeUpdate("INSERT INTO Profession VALUES ("+id_profession+", '"+Profession_anterieur+"')");
-                    System.out.println("Id profession : " + id_profession);
-                    stmt.executeUpdate("INSERT INTO Patient_profession_anterieure VALUES ("+id_patient + ", "+id_profession + ")");
-                }
-            }
-            ResultSet rset = stmt.executeQuery("select Patient_profession_anterieure.Id_patient, Prenom_patient, Nom_patient, Patient_profession_anterieure.Id_profession, Nom_profession from Profession join Patient_profession_anterieure on Patient_profession_anterieure.Id_profession = Profession.Id_profession join Patient on Patient.Id_patient = Patient_profession_anterieure.Id_patient where Patient.Id_patient ="+id_patient);
-            System.out.println("N° Patient  Prénom patient    nom patient       Profession id     nom profession    ");
-            while (rset.next())
-            {
-                System.out.print(rset.getInt(1) + "\t");
-                System.out.print(rset.getString(2) + "\t");
-                System.out.print(rset.getString(3) + "\t");
-                System.out.print(rset.getInt(4)+ "\t");
-                System.out.print(rset.getString(5) + "\t");
-                System.out.println("\n");
-            }
-
         } catch (SQLException ex) {
 // Si une exception SQL survient, il affiche les messages d’erreurs du SGBD
             System.out.println("\n*** ERREUR SQL ***\n");
@@ -1090,34 +1380,27 @@ public class Methodesbdd
                 System.out.println("Message: " + ex.getMessage());
                 System.out.println("Code de l'erreur: " + ex.getErrorCode());
                 ex = ex.getNextException();
-
             }
-
         }
-
     }
 
     public void print_patient(Connection conn) throws SQLException {
         Statement stmt = conn.createStatement();
-        ResultSet rset = stmt.executeQuery("select Id_patient, Sexe, Nom_patient, Prenom_patient, Mdp_patient, Email, Date_naissance, Prospection, Profession_id from Patient ");
-        System.out.println("N° Patient \t  Sexe \t \t Nom Patient \t \t Prenom Patient \t\t Patient mot de passe \t\t Email \t\t\t\t\t Date de naissance \t\t\t Prospection \t\t\t Profession  ");
+        ResultSet rset = stmt.executeQuery("select Id_patient, Sexe, Nom_patient, Prenom_patient, Mdp_patient, Email, Date_naissance, Prospection from Patient ");
+        System.out.println("N° Patient \t  Sexe \t \t Nom Patient \t \t Prenom Patient \t\t Patient mot de passe \t\t Email \t\t\t\t\t Date de naissance \t\t\t Prospection   ");
         while(rset.next())
         {
             System.out.print(rset.getInt(1) + "\t" + "\t" + "\t");
             System.out.print(rset.getString(2)+ "\t" + "\t" + "\t");
             System.out.print(rset.getString(3)+ "\t" + "\t" + "\t" + "\t");
             System.out.print(rset.getString(4)+ "\t" + "\t" + "\t" + "\t" + "\t" + "\t");
-            System.out.print(rset.getString(5)+ "\t" + "\t" + "\t" + "\t" + "\t");
+            System.out.print(rset.getInt(5)+ "\t" + "\t" + "\t" + "\t" + "\t");
             System.out.print(rset.getString(6)+ "\t" + "\t");
             System.out.print(rset.getString(7)+ "\t" + "\t") ;
-            if (rset.getObject(8) == null)
+            if (rset.getString(8).equals("NULL"))
                 System.out.print("X         ");
             else
-                System.out.print(rset.getString(8)+ "\t" + "\t");
-            if (rset.getObject(9) == null)
-                System.out.print("X         ");
-            else
-                System.out.print(rset.getString(9)+ "\t" + "\t");
+                System.out.print(rset.getString(8)+ "\t");
             System.out.println("\n");
         }
     }

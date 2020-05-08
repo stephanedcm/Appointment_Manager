@@ -12,22 +12,25 @@ public class Connexion {
         // create jdbc connection obj and load class
         Class.forName("oracle.jdbc.driver.OracleDriver");
         int user;
-        Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe", "sam", "sammp");
+        Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe", "steph", "admin");
         // create statement obj
         Statement stmt = conn.createStatement();
         Methodesbdd test = new Methodesbdd();
-        //user = test.login(conn);
-        //if (user != -1)
-        //test.patient_consultation(conn, user);
+
         //test.add_mot_cle(conn);
         //test.add_comportement(conn);
         //test.add_posture(conn);
-        //test.rdv_psy(conn);
+        test.rdv_psy(conn);
         //test.fin_rdv(conn);
-
+        //test.display_rdv(conn);
+        //user = test.login(conn);
+         //if (user != -1)
+           //test.patient_consultation(conn, user);
         //test.ajout_patient(conn);
         //test.print_patient(conn);
+        // execute query
 
+        // print database table records
 
     }
 
