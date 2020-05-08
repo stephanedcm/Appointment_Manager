@@ -70,19 +70,6 @@ public class Methodesbdd
             System.out.println("Id mot cle : " + id_mot_cle);
             stmt.executeUpdate("INSERT INTO patient_mots_cles VALUES ("+id_mot_cle + ", "+id_patient + ")");
         }
-
-        ResultSet rset = stmt.executeQuery("select patient_mots_cles.id_patient, Prenom_patient, Nom_patient, patient_mots_cles.mots_cle_id, nom_mots_cle from mots_cles join patient_mots_cles on patient_mots_cles.mots_cle_id = mots_cles.mots_cle_id join Patient on Patient.Id_patient = Patient_mots_cles.id_patient where Patient.Id_patient ="+id_patient);
-        System.out.println("N° Patient  Prénom patient    nom patient       mots cle id     nom mot cle    ");
-        while (rset.next())
-        {
-            System.out.print(rset.getInt(1) + "\t");
-            System.out.print(rset.getString(2) + "\t");
-            System.out.print(rset.getString(3) + "\t");
-            System.out.print(rset.getInt(4)+ "\t");
-            System.out.print(rset.getString(5) + "\t");
-            System.out.println("\n");
-        }
-
     }
 
     public void add_comportement(Connection conn) throws SQLException {
@@ -139,18 +126,6 @@ public class Methodesbdd
             }
             stmt.executeUpdate("INSERT INTO Comportement VALUES ("+id_comportement+", '"+comportement+"')");
             stmt.executeUpdate("INSERT INTO patient_comportement VALUES ("+id_comportement + ", "+id_patient + ")");
-        }
-
-        ResultSet rset = stmt.executeQuery("select patient_comportement.id_patient, Prenom_patient, Nom_patient, patient_comportement.comportement_id, nom_comportement from Comportement join patient_comportement on patient_comportement.comportement_id = Comportement.comportement_id join Patient on Patient.Id_patient = Patient_comportement.id_patient where Patient.Id_patient ="+id_patient);
-        System.out.println("N° Patient  Prénom patient    nom patient       Comportement id     nom comportement    ");
-        while (rset.next())
-        {
-            System.out.print(rset.getInt(1) + "\t");
-            System.out.print(rset.getString(2) + "\t");
-            System.out.print(rset.getString(3) + "\t");
-            System.out.print(rset.getInt(4)+ "\t");
-            System.out.print(rset.getString(5) + "\t");
-            System.out.println("\n");
         }
 
     }
@@ -211,17 +186,6 @@ public class Methodesbdd
             stmt.executeUpdate("INSERT INTO patient_posture VALUES ("+id_posture + ", "+id_patient + ")");
         }
 
-        ResultSet rset = stmt.executeQuery("select patient_posture.patient_id, Prenom_patient, Nom_patient, patient_posture.posture_id, nom_posture from Posture join patient_posture on patient_posture.posture_id = Posture.posture_id join Patient on Patient.Id_patient = patient_posture.patient_id where Patient.Id_patient ="+id_patient);
-        System.out.println("N° Patient  Prénom patient    nom patient       Posture id     nom posture    ");
-        while (rset.next())
-        {
-            System.out.print(rset.getInt(1) + "\t");
-            System.out.print(rset.getString(2) + "\t");
-            System.out.print(rset.getString(3) + "\t");
-            System.out.print(rset.getInt(4)+ "\t");
-            System.out.print(rset.getString(5) + "\t");
-            System.out.println("\n");
-        }
     }
 
     public void display_rdv(Connection conn) throws SQLException, ParseException {
@@ -231,9 +195,8 @@ public class Methodesbdd
         int annee1=0;
         int num=0;
         boolean check=true;
-        System.out.println("Vous avez choisi d'afficher les consultations enregistrées.");
         while(check==true){
-            System.out.print("Pour afficher les consultations d'une journée précise, tapez 1, pour afficher les consultations d'une semaine précise, tapez 2: ");
+            System.out.println("1 : Afficher les consultations d'une journée \n2 : Afficher les consultations d'une semaine");
             Scanner scanner = new Scanner(System.in);  // Create a Scanner object
             int whichOne_1 = scanner.nextInt();
             switch(whichOne_1){
@@ -385,11 +348,10 @@ public class Methodesbdd
         String h="";
         String type="";
         int idConsultation=0;
-        System.out.println("Vous avez sélectionné l'ajout, la modification ou l'annulation d'une consultation.");
         Scanner scanner = new Scanner(System.in);  // Create a Scanner object
         boolean check=false;
         while(!check){
-            System.out.print("Tapez 1 pour ajouter une consultation, 2 pour la modifier, 3 pour l'annuler et 4 pour retourner au menu précédent: ");
+            System.out.println("1 : Ajouter une consultation \n2 : Modifier la date d'une consultation \n3 : Annuler une consultation \n4 : Retourner au menu précédent");
             int whichOne_1 = scanner.nextInt();  // Read user input
             switch(whichOne_1){
                 case 1:
@@ -1325,6 +1287,7 @@ public class Methodesbdd
                 System.out.print(rset.getString(5) + "\t" + "\t"+ "\t");
                 System.out.print(rset.getString(6) + "\t");
             }
+            System.out.println("\n");
         }
         catch (SQLException ex)
         {
@@ -1485,7 +1448,6 @@ public class Methodesbdd
                         mdpadmin = in.nextLine();
                         if (mdpadmin.equals("admin"))
                         {
-                            System.out.println("Bienvenue psychologue");
                             identification = true;
                             return -1;
                         }
@@ -1536,5 +1498,133 @@ public class Methodesbdd
             }
         }
         return 0;
+    }
+
+    public void print_mot_cle(Connection conn) throws SQLException
+    {
+        Scanner in = new Scanner(System.in);
+        int nbr_mot_cle = 0;
+        String mot_cle = "";
+        int id_patient = 0;
+        String prenom_patient = "";
+        String nom_patient = "";
+        int cpt = 0;
+        int cptNextVal = 0;
+        int id_mot_cle = 0;
+        Statement stmt= conn.createStatement();
+
+        System.out.println("Vous avez choisi de consulter un ou plusieurs mots clés d'un patient\n");
+        while(cpt == 0)
+        {
+            System.out.println("Entrez le nom de famille du patient à qui vous souhaitez les consulter : ");
+            nom_patient = in.nextLine();
+
+            ResultSet rset = stmt.executeQuery("select Id_patient, Nom_patient, Prenom_patient from Patient where Nom_patient='"+ nom_patient +"'");
+            System.out.println("N° Patient Nom patient \t  Prenom patient");
+            while(rset.next())
+            {
+                cpt++;
+                System.out.print(rset.getInt(1) + "\t");
+                System.out.print(rset.getString(2) + "\t" + "\t" + "\t");
+                System.out.print(rset.getString(3) + "\t");
+                System.out.println("\n");
+            }
+        }
+        System.out.println("Entrez le numéro du patient auquel vous souhaitez les consulter : ");
+
+        id_patient = in.nextInt();
+        ResultSet rset = stmt.executeQuery("select patient_mots_cles.id_patient, Prenom_patient, Nom_patient, patient_mots_cles.mots_cle_id, nom_mots_cle from mots_cles join patient_mots_cles on patient_mots_cles.mots_cle_id = mots_cles.mots_cle_id join Patient on Patient.Id_patient = Patient_mots_cles.id_patient where Patient.Id_patient ="+id_patient);
+        System.out.println("nom mot cle pour le patient :" + nom_patient + " " + prenom_patient) ;
+        while (rset.next())
+        {
+            System.out.print(rset.getString(5));
+            System.out.println("\n");
+        }
+    }
+
+    public void print_comportement(Connection conn) throws SQLException
+    {
+        Scanner in = new Scanner(System.in);
+        int nbr_comportement = 0;
+        String comportement = "";
+        int id_patient = 0;
+        String prenom_patient = "";
+        String nom_patient = "";
+        int cpt = 0;
+        int cptNextVal = 0;
+        int id_comportement = 0;
+        Statement stmt= conn.createStatement();
+
+        System.out.println("Vous avez choisi de consulter un ou plusieurs comportements \n");
+        while(cpt == 0)
+        {
+            System.out.println("Entrez le nom de famille du patient à qui vous souhaitez les consulter : ");
+            nom_patient = in.nextLine();
+
+            ResultSet rset = stmt.executeQuery("select Id_patient, Nom_patient, Prenom_patient from Patient where Nom_patient='"+ nom_patient +"'");
+            System.out.println("N° Patient Nom patient \t  Prenom patient");
+            while(rset.next())
+            {
+                cpt++;
+                System.out.print(rset.getInt(1) + "\t");
+                System.out.print(rset.getString(2) + "\t" + "\t" + "\t");
+                System.out.print(rset.getString(3) + "\t");
+                System.out.println("\n");
+            }
+        }
+        System.out.println("Entrez le numéro du patient pour lequel vous souhaitez les consulter : ");
+
+        id_patient = in.nextInt();
+        ResultSet rset = stmt.executeQuery("select patient_comportement.id_patient, Prenom_patient, Nom_patient, patient_comportement.comportement_id, nom_comportement from Comportement join patient_comportement on patient_comportement.comportement_id = Comportement.comportement_id join Patient on Patient.Id_patient = Patient_comportement.id_patient where Patient.Id_patient ="+id_patient);
+        System.out.println("nom comportement du patient " + nom_patient + "" + prenom_patient);
+        while (rset.next())
+        {
+            System.out.print(rset.getString(5));
+            System.out.println("\n");
+        }
+    }
+
+    public void print_posture(Connection conn) throws SQLException
+    {
+        Scanner in = new Scanner(System.in);
+        int nbr_posture = 0;
+        String posture = "";
+        int id_patient = 0;
+        String prenom_patient = "";
+        String nom_patient = "";
+        int cpt = 0;
+        int cptNextVal = 0;
+        int id_posture = 0;
+        Statement stmt= conn.createStatement();
+
+        System.out.println("Vous avez choisi de consulter une ou plusieurs posture \n");
+        while(cpt == 0)
+        {
+            System.out.println("Entrez le nom de famille du patient à qui vous souhaitez les consulter : ");
+            nom_patient = in.nextLine();
+
+            ResultSet rset = stmt.executeQuery("select Id_patient, Nom_patient, Prenom_patient from Patient where Nom_patient='"+ nom_patient +"'");
+            System.out.println("N° Patient Nom patient \t  Prenom patient");
+            while(rset.next())
+            {
+                cpt++;
+                System.out.print(rset.getInt(1) + "\t");
+                System.out.print(rset.getString(2) + "\t" + "\t" + "\t");
+                System.out.print(rset.getString(3) + "\t");
+                System.out.println("\n");
+            }
+        }
+        System.out.println("Entrez le numéro du patient auquel vous souhaitez les consulter : ");
+
+        id_patient = in.nextInt();
+
+        ResultSet rset = stmt.executeQuery("select patient_posture.patient_id, Prenom_patient, Nom_patient, patient_posture.posture_id, nom_posture from Posture join patient_posture on patient_posture.posture_id = Posture.posture_id join Patient on Patient.Id_patient = patient_posture.patient_id where Patient.Id_patient ="+id_patient);
+        System.out.println("nom posture pour le patient " + nom_patient + " " + prenom_patient);
+        while (rset.next())
+        {
+
+            System.out.print(rset.getString(5));
+            System.out.println("\n");
+        }
     }
 }
