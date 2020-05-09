@@ -340,7 +340,7 @@ public class Methodesbdd
 
     }
 
-    public static void rdv_psy(Connection conn) throws SQLException, ParseException {
+    public static int rdv_psy(Connection conn) throws SQLException, ParseException {
         String jour="";
         String mois="";
         String annee="";
@@ -366,7 +366,7 @@ public class Methodesbdd
                         idConsultation=1;
                     }
                     System.out.println("Vous avez choisi d'ajouter une consultation.");
-                    System.out.print("Veuillez sélectionner le type de consultation, tapez 1 s'il s'agit d'une consultation individuelle, 2 en couple, 3 en famille: ");
+                    System.out.print("Veuillez sélectionner le type de consultation, tapez 1 s'il s'agit d'une consultation individuelle, 2 en couple, 3 en famille, 4 pour revenir au menu principal: ");
                     int whichOne_2 = scanner.nextInt();
                     int nbPatient=0;
                     int prix=0;
@@ -391,8 +391,11 @@ public class Methodesbdd
                                 nbPatient=3;
                                 check_1=true;
                                 break;
+                            case 4:
+                                return 0;
+
                             default:
-                                System.out.print("Mauvais choix, veuillez taper 1 s'il s'agit d'une consultation individuelle, 2 en couple, 3 en famille: ");
+                                System.out.print("Mauvais choix, veuillez taper 1 s'il s'agit d'une consultation individuelle, 2 en couple, 3 en famille, 4 pour revenir au menu principal: ");
                                 scanner.reset();
                                 whichOne_2 = scanner.nextInt();
                         }
@@ -403,8 +406,11 @@ public class Methodesbdd
                         int cpt_patient=0;
                         String nom="";
                         while(cpt_patient==0){
-                            System.out.print("Veuillez rentrer le Nom du patient "+i+": ");
+                            System.out.print("Veuillez rentrer le Nom du patient "+i+" ou entrez 'retour' pour revenir au menu principal: ");
                             nom = scanner1.nextLine();
+                            if(nom.contains("retour")){
+                                return 0;
+                            }
                             stmt= conn.createStatement();
                             rset = stmt.executeQuery("select Id_Patient,Nom_patient from Patient where Nom_patient ='"+nom+"'");
                             if(cpt_patient==0){
@@ -621,9 +627,12 @@ public class Methodesbdd
                     System.out.println("Vous avez choisi de modifier une consultation.");
                     int cpt_patient=0;
                     while(cpt_patient==0){
-                        System.out.print("Veuillez rentrer le Nom du patient: ");
+                        System.out.print("Veuillez rentrer le Nom du patient ou tapez 'retour' pour revenir au menu principal: ");
                         Scanner scanner2 = new Scanner(System.in);
                         String nom = scanner2.nextLine();
+                        if(nom.contains("retour")){
+                            return 0;
+                        }
                         stmt= conn.createStatement();
                         rset = stmt.executeQuery("select Patient.Id_patient, Prenom_patient, Nom_patient, Patient_consultation.Id_consultation, Date_consultation from Patient join Patient_consultation on Patient.Id_patient = Patient_consultation.Id_patient join Consultation on Patient_consultation.Id_consultation = Consultation.Id_consultation where Nom_patient='"+nom+"'");
                         while(rset.next())
@@ -807,9 +816,12 @@ public class Methodesbdd
                     System.out.println("Vous avez choisi d'annuler une consultation.");
                     cpt_patient=0;
                     while(cpt_patient==0){
-                        System.out.print("Veuillez rentrer le Nom du patient: ");
+                        System.out.print("Veuillez rentrer le Nom du patient ou tapez 'retour' pour revenir au menu principal: ");
                         Scanner scanner2 = new Scanner(System.in);
                         String nom = scanner2.nextLine();
+                        if(nom.contains("retour")){
+                            return 0;
+                        }
                         stmt= conn.createStatement();
                         rset = stmt.executeQuery("select Patient.Id_patient, Prenom_patient, Nom_patient, Patient_consultation.Id_consultation, Date_consultation from Patient join Patient_consultation on Patient.Id_patient = Patient_consultation.Id_patient join Consultation on Patient_consultation.Id_consultation = Consultation.Id_consultation where Nom_patient='"+nom+"'");
                         while(rset.next())
@@ -851,6 +863,7 @@ public class Methodesbdd
             }
 
         }
+        return 0;
 
     }
 
@@ -1440,11 +1453,11 @@ public class Methodesbdd
         while(!identification)
         {
             try {
-                    System.out.println("Enter your username : ");
+                    System.out.print("Enter your username : ");
                     username = in.nextLine();
                     if (username.equals("admin"))
                     {
-                        System.out.println("Enter your password : ");
+                        System.out.print("Enter your password : ");
                         mdpadmin = in.nextLine();
                         if (mdpadmin.equals("admin"))
                         {

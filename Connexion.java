@@ -13,7 +13,7 @@ public class Connexion {
         // create jdbc connection obj and load class
         Class.forName("oracle.jdbc.driver.OracleDriver");
         int user;
-        Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe", "sam", "sammp");
+        Connection conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:xe", "steph", "admin"); //veuillez entrer les login de votre base de donnée après avoir executé notre script
         // create statement obj
         Statement stmt = conn.createStatement();
         Methodesbdd test = new Methodesbdd();
