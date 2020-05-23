@@ -75,7 +75,7 @@ public class Connexion {
                 {
                     while(choix_psy_debut != 1 && choix_psy_debut !=2 && choix_psy_debut != 3 && choix_psy_debut != 4 && choix_psy_debut != 5 && choix_psy_debut != 6 && choix_psy_debut != 7)
                     {
-                        System.out.println("1 : Ajouter/Afficher des patients \n2 : Gérez vos consultations \n3 : Afficher consultation sur un jour ou une semaine donnée \n4 : Finaliser un rendez-vous \n5 : Ajouter/Afficher mots-clés, comportement ou posture à un patient \n6 : Se déconnecter \n7 : Quitter l'application");
+                        System.out.println("1 : Ajouter/Afficher des patients \n2 : Gérer vos consultations \n3 : Afficher consultation sur un jour ou une semaine donnée \n4 : Finaliser un rendez-vous \n5 : Ajouter/Afficher mots-clés, comportement ou posture à un patient \n6 : Se déconnecter \n7 : Quitter l'application");
                         choix_psy_debut = in.nextInt();
                     }
                     if (choix_psy_debut == 1)

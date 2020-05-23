@@ -284,7 +284,7 @@ public class Methodesbdd
                     cal.set(Calendar.DAY_OF_WEEK, Calendar.SATURDAY);
                     int annee_saturday=cal.get(Calendar.YEAR);
                     int mois_saturday=cal.get(Calendar.MONTH)+1;
-                    int jour_saturday=cal.get(Calendar.DAY_OF_MONTH);
+                    int jour_saturday=cal.get(Calendar.DAY_OF_MONTH)+1;
                     //System.out.println(formatter.format(cal.getTime()));
                     //System.out.println(annee_saturday+" "+mois_saturday+" "+jour_saturday);
                     stmt = conn.createStatement( ResultSet.TYPE_SCROLL_INSENSITIVE,
@@ -298,7 +298,7 @@ public class Methodesbdd
                     }
                     else{
                         stmt= conn.createStatement();
-                        rset = stmt.executeQuery("select Patient.Id_patient, Prenom_patient, Nom_patient, Patient_consultation.Id_consultation, Date_consultation, Patient_consultation.Type_reglement, Patient_consultation.Retard, Patient_consultation.Indicateur_anxiete from Patient join Patient_consultation on Patient.Id_patient = Patient_consultation.Id_patient join Consultation on Patient_consultation.Id_consultation = Consultation.Id_consultation WHERE Date_consultation>=to_timestamp('"+annee_monday+"-"+mois_monday+"-"+jour_monday+"','yyyy-mm-dd') AND Date_consultation<to_timestamp('"+annee_saturday+"-"+mois_saturday+"-"+jour_saturday+"','yyyy-mm-dd')");
+                        rset = stmt.executeQuery("select Patient.Id_patient, Prenom_patient, Nom_patient, Patient_consultation.Id_consultation, Date_consultation, Patient_consultation.Type_reglement, Patient_consultation.Retard, Patient_consultation.Indicateur_anxiete from Patient join Patient_consultation on Patient.Id_patient = Patient_consultation.Id_patient join Consultation on Patient_consultation.Id_consultation = Consultation.Id_consultation WHERE Date_consultation>=to_timestamp('"+annee_monday+"-"+mois_monday+"-"+jour_monday+"','yyyy-mm-dd') AND Date_consultation<=to_timestamp('"+annee_saturday+"-"+mois_saturday+"-"+jour_saturday+"','yyyy-mm-dd')");
                         System.out.println("Liste des consultations passées et non traitées :");
                         System.out.println("N° Consultation" +  "\t" +  "Date consultation" + "\t" + "\t" + "Prénom patient" + "\t" + "Nom patient" + "\t" +  "Indicateur anxiete" + "\t" + "Type de reglement" + "\t" + "Retard");
                         while(rset.next())
@@ -1004,7 +1004,6 @@ public class Methodesbdd
                     {
                         System.out.println("Le patient était-il en retard ? Entrez O pour oui N pour non : ");
                         Retard = scan.next();
-                        System.out.println("Retard : " + Retard);
                     }
                     if (Retard.equals("O"))
                         stmt.executeUpdate("Update Patient_consultation set Retard = 'Oui' where Id_consultation ="+id_Consultation + "and Id_patient ="+id_Patient1);
@@ -1285,161 +1284,149 @@ public class Methodesbdd
 
     public void patient_consultation(Connection conn, int user) throws SQLException, ClassNotFoundException
     {
-        int id = user;
-        Class.forName("oracle.jdbc.driver.OracleDriver");
-        try
-        {
-            Statement stmt= conn.createStatement();
-            ResultSet rset = stmt.executeQuery("select * from consultp where Id_patient ="+id);
-            System.out.println("Prénom" +  "\t" +  "Nom" + "\t\t\t" + "Date consultation" + "\t\t\t" + "Type consultation" + "\t" + "Prix Consultation");
-            while(rset.next())
-            {
-                System.out.print(rset.getString(2) + "\t");
-                System.out.print(rset.getString(3) + "\t" + "\t");
-                System.out.print(rset.getString(4)+ "\t" +  "\t");
-                System.out.print(rset.getString(5) + "\t" + "\t"+ "\t");
-                System.out.print(rset.getString(6) + "\t");
-            }
-            System.out.println("\n");
-        }
-        catch (SQLException ex)
-        {
-            System.out.println("\n*** ERREUR SQL ***\n");
-            while (ex != null)
-            {
-                System.out.println("SQL Etat: " + ex.getSQLState());
-                System.out.println("Message: " + ex.getMessage());
-                System.out.println("Code de l'erreur: " + ex.getErrorCode());
-                ex = ex.getNextException();
-            }
-        }
-    }
+                    int id = user;
+                    Class.forName("oracle.jdbc.driver.OracleDriver");
+                    try
+                    {
+                        Statement stmt= conn.createStatement();
+                        ResultSet rset = stmt.executeQuery("select * from consultp where Id_patient ="+id);
+                        System.out.println("Prénom" +  "\t" +  "Nom" + "\t\t\t" + "Date consultation" + "\t\t\t" + "Type consultation");
+                        while(rset.next())
+                        {
+                            System.out.print(rset.getString(2) + "\t");
+                            System.out.print(rset.getString(3) + "\t" + "\t");
+                            System.out.print(rset.getString(4)+ "\t" +  "\t");
+                            System.out.print(rset.getString(5) + "\t" + "\t"+ "\t");
+                        }
+                        System.out.println("\n");
+                    }
+                    catch (SQLException ex)
+                    {
+                        System.out.println("\n*** ERREUR SQL ***\n");
+                        while (ex != null)
+                        {
+                            System.out.println("SQL Etat: " + ex.getSQLState());
+                            System.out.println("Message: " + ex.getMessage());
+                            System.out.println("Code de l'erreur: " + ex.getErrorCode());
+                            ex = ex.getNextException();
+                        }
+                    }
+                }
 
     public void ajout_patient(Connection conn) throws SQLException, ClassNotFoundException {
 
-        Class.forName("oracle.jdbc.driver.OracleDriver");
-        String Prenom_patient;
-        String Nom_patient;
-        String Email_patient;
-        String Mdp_patient;
-        String Sexe_patient;
-        String Date_naissance;
-        String Profession_actuelle = "";
-        String Prospection;
-        String ouinonprofessionanterieur;
-        String Profession_anterieur;
-        int nbprofession = 0;
-        int cptNextVal = 0;
-        int id_profession = 0;
-        int id_patient = 0;
+                    Class.forName("oracle.jdbc.driver.OracleDriver");
+                    String Prenom_patient;
+                    String Nom_patient;
+                    String Email_patient;
+                    String Mdp_patient;
+                    String Sexe_patient;
+                    String Date_naissance;
+                    String Profession_actuelle = "";
+                    String Prospection;
+                    String ouinonprofessionanterieur;
+                    String Profession_anterieur;
+                    int nbprofession = 0;
+                    int cptNextVal = 0;
+                    int id_profession = 0;
+                    int id_patient = 0;
 
-        Scanner in = new Scanner(System.in);
-        try {
-            System.out.println("Entrez le prénom du patient : ");
-            Prenom_patient = in.nextLine();
-            System.out.println("Entrez le nom du patient : ");
-            Nom_patient = in.nextLine();
-            System.out.println("Entrez l'email du patient : ");
-            Email_patient = in.nextLine();
-            System.out.println("Entrez le mot de passe du patient : ");
-            Mdp_patient = in.nextLine();
-            System.out.println("Entrez le sexe du patient : ");
-            Sexe_patient = in.nextLine();
-            System.out.println("Entrez la date de naissance du patient sous la forme suivante : yyyy-mm-dd ");
-            Date_naissance = in.nextLine();
-            System.out.println("Entrez comment le patient vous a connu : ");
-            Prospection = in.nextLine();
-            if (Prospection.equals(""))
-                Prospection = "NULL";
-            System.out.println("Entrez la profession actuelle du patient : ");
-            Profession_actuelle = in.nextLine();
-            if (Profession_actuelle.equals(""))
-                Profession_actuelle = "NULL";
-            Statement stmt = conn.createStatement();
-            String query1 = "insert into Patient (Id_patient, Prenom_patient, Nom_patient, Email, Mdp_patient, Sexe, Date_naissance, Profession_id, Prospection)" + " VALUES (Patient_seq.nextval, '" + Prenom_patient + "',  '" + Nom_patient + "', '" + Email_patient + "', '" + Mdp_patient + "', '" + Sexe_patient + "', to_date('" + Date_naissance + "', 'yyyy-mm-dd'), '" + Profession_actuelle + "', '" + Prospection + "')";
-            stmt.executeUpdate(query1);
-            ResultSet rsett = stmt.executeQuery("select Id_patient from Patient where Nom_patient ="+"'" + Nom_patient +"'" + "and Prenom_patient ='"+ Prenom_patient+"'");
-            while (rsett.next())
-            {
-                id_patient= rsett.getInt(1);
-            }
-            System.out.println("Le patient a-t-il des profession antérieures ? Entrez O pour oui N pour non");
-            ouinonprofessionanterieur = in.nextLine();
-            if (ouinonprofessionanterieur.equals("O"));
-            {
-                System.out.println("Entrez le nombre de profession que vous souhaitez ajouter au patient " + Nom_patient + " " + Prenom_patient +" : ");
-                nbprofession = in.nextInt();
-                for (int i=0; i<nbprofession; i++)
-                {
-                    System.out.println("Entrez les professions une à une : ");
-                    Profession_anterieur = in.next();
-                    ResultSet rset = stmt.executeQuery("select Profession_seq.nextval from Profession where Id_profession=1");
-                    while(rset.next()) {
-                        cptNextVal++;
-                        id_profession = (rset.getInt(1)+1);
-                    }
-                    if(cptNextVal==0){
-                        id_profession=1;
-                    }
-                    stmt.executeUpdate("INSERT INTO Profession VALUES ("+id_profession+", '"+Profession_anterieur+"')");
-                    System.out.println("Id profession : " + id_profession);
-                    stmt.executeUpdate("INSERT INTO Patient_profession_anterieure VALUES ("+id_patient + ", "+id_profession + ")");
-                }
-            }
-            ResultSet rset = stmt.executeQuery("select Patient_profession_anterieure.Id_patient, Prenom_patient, Nom_patient, Patient_profession_anterieure.Id_profession, Nom_profession from Profession join Patient_profession_anterieure on Patient_profession_anterieure.Id_profession = Profession.Id_profession join Patient on Patient.Id_patient = Patient_profession_anterieure.Id_patient where Patient.Id_patient ="+id_patient);
-            System.out.println("N° Patient  Prénom patient    nom patient       Profession id     nom profession    ");
-            while (rset.next())
-            {
-                System.out.print(rset.getInt(1) + "\t");
-                System.out.print(rset.getString(2) + "\t");
-                System.out.print(rset.getString(3) + "\t");
-                System.out.print(rset.getInt(4)+ "\t");
-                System.out.print(rset.getString(5) + "\t");
-                System.out.println("\n");
-            }
+                    Scanner in = new Scanner(System.in);
+                    try {
+                        System.out.println("Entrez le prénom du patient : ");
+                        Prenom_patient = in.nextLine();
+                        System.out.println("Entrez le nom du patient : ");
+                        Nom_patient = in.nextLine();
+                        System.out.println("Entrez l'email du patient : ");
+                        Email_patient = in.nextLine();
+                        System.out.println("Entrez le mot de passe du patient : ");
+                        Mdp_patient = in.nextLine();
+                        System.out.println("Entrez le sexe du patient : ");
+                        Sexe_patient = in.nextLine();
+                        System.out.println("Entrez la date de naissance du patient sous la forme suivante : yyyy-mm-dd ");
+                        Date_naissance = in.nextLine();
+                        System.out.println("Entrez comment le patient vous a connu : ");
+                        Prospection = in.nextLine();
+                        if (Prospection.equals(""))
+                            Prospection = "NULL";
+                        System.out.println("Entrez la profession actuelle du patient : ");
+                        Profession_actuelle = in.nextLine();
+                        if (Profession_actuelle.equals(""))
+                            Profession_actuelle = "NULL";
+                        Statement stmt = conn.createStatement();
+                        String query1 = "insert into Patient (Id_patient, Prenom_patient, Nom_patient, Email, Mdp_patient, Sexe, Date_naissance, Profession_id, Prospection)" + " VALUES (Patient_seq.nextval, '" + Prenom_patient + "',  '" + Nom_patient + "', '" + Email_patient + "', '" + Mdp_patient + "', '" + Sexe_patient + "', to_date('" + Date_naissance + "', 'yyyy-mm-dd'), '" + Profession_actuelle + "', '" + Prospection + "')";
+                        stmt.executeUpdate(query1);
+                        ResultSet rsett = stmt.executeQuery("select Id_patient from Patient where Nom_patient ="+"'" + Nom_patient +"'" + "and Prenom_patient ='"+ Prenom_patient+"'");
+                        while (rsett.next())
+                        {
+                            id_patient= rsett.getInt(1);
+                        }
+                        System.out.println("Le patient a-t-il des profession antérieures ? Entrez O pour oui N pour non");
+                        ouinonprofessionanterieur = in.nextLine();
+                        if (ouinonprofessionanterieur.equals("O"));
+                        {
+                            System.out.println("Entrez le nombre de profession que vous souhaitez ajouter au patient " + Nom_patient + " " + Prenom_patient + " : ");
+                            nbprofession = in.nextInt();
+                            for (int i = 0; i < nbprofession; i++) {
+                                System.out.println("Entrez les professions une à une : ");
+                                Profession_anterieur = in.next();
+                                ResultSet rset = stmt.executeQuery("select Profession_seq.nextval from Profession where Id_profession=1");
+                                while (rset.next()) {
+                                    cptNextVal++;
+                                    id_profession = (rset.getInt(1) + 1);
+                                }
+                                if (cptNextVal == 0) {
+                                    id_profession = 1;
+                                }
+                                stmt.executeUpdate("INSERT INTO Profession VALUES (" + id_profession + ", '" + Profession_anterieur + "')");
+                                System.out.println("Id profession : " + id_profession);
+                                stmt.executeUpdate("INSERT INTO Patient_profession_anterieure VALUES (" + id_patient + ", " + id_profession + ")");
+                                System.out.println("Patient ajouté !");
+                            }
+                        }
 
-        } catch (SQLException ex) {
+                    } catch (SQLException ex) {
 // Si une exception SQL survient, il affiche les messages d’erreurs du SGBD
-            System.out.println("\n*** ERREUR SQL ***\n");
-            while (ex != null) {
-                System.out.println("SQL Etat: " + ex.getSQLState());
-                System.out.println("Message: " + ex.getMessage());
-                System.out.println("Code de l'erreur: " + ex.getErrorCode());
-                ex = ex.getNextException();
+                        System.out.println("\n*** ERREUR SQL ***\n");
+                        while (ex != null) {
+                            System.out.println("SQL Etat: " + ex.getSQLState());
+                            System.out.println("Message: " + ex.getMessage());
+                            System.out.println("Code de l'erreur: " + ex.getErrorCode());
+                            ex = ex.getNextException();
 
-            }
+}
 
         }
 
-    }
+                }
 
-    public void print_patient(Connection conn) throws SQLException {
+public void print_patient(Connection conn) throws SQLException {
         Statement stmt = conn.createStatement();
         ResultSet rset = stmt.executeQuery("select Id_patient, Sexe, Nom_patient, Prenom_patient, Mdp_patient, Email, Date_naissance, Prospection, Profession_id from Patient ");
         System.out.println("N° Patient \t  Sexe \t \t Nom Patient \t \t Prenom Patient \t\t Patient mot de passe \t\t Email \t\t\t\t\t Date de naissance \t\t\t Prospection \t\t\t Profession  ");
         while(rset.next())
         {
-            System.out.print(rset.getInt(1) + "\t" + "\t" + "\t");
-            System.out.print(rset.getString(2)+ "\t" + "\t" + "\t");
-            System.out.print(rset.getString(3)+ "\t" + "\t" + "\t" + "\t");
-            System.out.print(rset.getString(4)+ "\t" + "\t" + "\t" + "\t" + "\t" + "\t");
-            System.out.print(rset.getString(5)+ "\t" + "\t" + "\t" + "\t" + "\t");
-            System.out.print(rset.getString(6)+ "\t" + "\t");
-            System.out.print(rset.getString(7)+ "\t" + "\t") ;
-            if (rset.getObject(8) == null)
-                System.out.print("X         ");
-            else
-                System.out.print(rset.getString(8)+ "\t" + "\t");
-            if (rset.getObject(9) == null)
-                System.out.print("X         ");
-            else
-                System.out.print(rset.getString(9)+ "\t" + "\t");
-            System.out.println("\n");
+        System.out.print(rset.getInt(1) + "\t" + "\t" + "\t");
+        System.out.print(rset.getString(2)+ "\t" + "\t" + "\t");
+        System.out.print(rset.getString(3)+ "\t" + "\t" + "\t" + "\t");
+        System.out.print(rset.getString(4)+ "\t" + "\t" + "\t" + "\t" + "\t" + "\t");
+        System.out.print(rset.getString(5)+ "\t" + "\t" + "\t" + "\t" + "\t");
+        System.out.print(rset.getString(6)+ "\t" + "\t");
+        System.out.print(rset.getString(7)+ "\t" + "\t") ;
+        if (rset.getObject(8) == null)
+        System.out.print("X         ");
+        else
+        System.out.print(rset.getString(8)+ "\t" + "\t");
+        if (rset.getObject(9) == null)
+        System.out.print("X         ");
+        else
+        System.out.print(rset.getString(9)+ "\t" + "\t");
+        System.out.println("\n");
         }
-    }
+        }
 
-    public int login(Connection conn) throws SQLException, ClassNotFoundException
-    {
+public int login(Connection conn) throws SQLException, ClassNotFoundException
+        {
         Class.forName("oracle.jdbc.driver.OracleDriver");
         Scanner in = new Scanner(System.in);
         String username;
@@ -1452,66 +1439,66 @@ public class Methodesbdd
 
         while(!identification)
         {
-            try {
-                    System.out.print("Enter your username : ");
-                    username = in.nextLine();
-                    if (username.equals("admin"))
-                    {
-                        System.out.print("Enter your password : ");
-                        mdpadmin = in.nextLine();
-                        if (mdpadmin.equals("admin"))
-                        {
-                            identification = true;
-                            return -1;
-                        }
+        try {
+        System.out.print("Entrez votre ID : ");
+        username = in.nextLine();
+        if (username.equals("admin"))
+        {
+        System.out.print("Entrez votre mot de passe : ");
+        mdpadmin = in.nextLine();
+        if (mdpadmin.equals("admin"))
+        {
+        identification = true;
+        return -1;
+        }
 
-                    }
-                    else
-                    {
-                        Statement stmt = conn.createStatement();
-                        ResultSet rset = stmt.executeQuery("select Id_patient, Mdp_patient from Patient where Email = '" + username + "'");
-                        while (rset.next())
-                        {
-                            id_user = rset.getInt("Id_patient");
-                            mdppatient = rset.getString("Mdp_patient");
-                            cpt++;
-                        }
-                        if (cpt == 0)
-                        {
-                            System.out.println("Cet username n'est pas reconnu");
-                        }
-                        else
-                        {
-                            System.out.println("Entrez votre mot de passe : ");
-                            motdepassetape = in.nextLine();
-                            if (motdepassetape.equals(mdppatient))
-                            {
-                                return id_user;
-                            }
-                            else
-                            {
-                                System.out.println("Mauvais mot de passe, recommencez l'identification");
-                            }
+        }
+        else
+        {
+        Statement stmt = conn.createStatement();
+        ResultSet rset = stmt.executeQuery("select Id_patient, Mdp_patient from Patient where Email = '" + username + "'");
+        while (rset.next())
+        {
+        id_user = rset.getInt("Id_patient");
+        mdppatient = rset.getString("Mdp_patient");
+        cpt++;
+        }
+        if (cpt == 0)
+        {
+        System.out.println("Cet username n'est pas reconnu");
+        }
+        else
+        {
+        System.out.print("Entrez votre mot de passe : ");
+        motdepassetape = in.nextLine();
+        if (motdepassetape.equals(mdppatient))
+        {
+        return id_user;
+        }
+        else
+        {
+        System.out.println("Mauvais mot de passe, recommencez l'identification");
+        }
 
-                        }
+        }
 
-                    }
-                 }
-            catch (SQLException ex)
-            {
+        }
+        }
+        catch (SQLException ex)
+        {
 // Si une exception SQL survient, il affiche les messages d’erreurs du SGBD
-                System.out.println("\n*** ERREUR SQL ***\n");
-                while (ex != null)
-                {
-                    System.out.println("SQL Etat: " + ex.getSQLState());
-                    System.out.println("Message: " + ex.getMessage());
-                    System.out.println("Code de l'erreur: " + ex.getErrorCode());
-                    ex = ex.getNextException();
-                }
-            }
+        System.out.println("\n*** ERREUR SQL ***\n");
+        while (ex != null)
+        {
+        System.out.println("SQL Etat: " + ex.getSQLState());
+        System.out.println("Message: " + ex.getMessage());
+        System.out.println("Code de l'erreur: " + ex.getErrorCode());
+        ex = ex.getNextException();
+        }
+        }
         }
         return 0;
-    }
+        }
 
     public void print_mot_cle(Connection conn) throws SQLException
     {
